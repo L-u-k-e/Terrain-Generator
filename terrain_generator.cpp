@@ -27,7 +27,7 @@ struct vec3
         int pos=0;
         while(true)
         {
-            if(data[pos]>=0)
+            if(data[pos]>=-9000)
             {
                 pos++;
             }
@@ -171,61 +171,74 @@ void init(int width, int height)
 
 void update(void)
 {   
+    glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
     //                                 MVP Transformations
     //------------------------------------------------------------------------------------------
-   // glm::mat4 Projection = glm::ortho(0.0f, (float) window_width, 0.0f, (float) window_height);
     float fov=45.0f;
-    glm::mat4 Projection = glm::perspective(glm::radians(fov), (GLfloat) window_width / (GLfloat) window_height, 0.1f, 10000.0f);
+    glm::mat4 Projection = glm::perspective(glm::radians(fov), (GLfloat) window_width / (GLfloat) window_height, 0.1f, 1000.0f);
     
     float tan_me = fov/2.0;
     float Z = window_height / (2 * tan(glm::radians(tan_me)));
     glm::mat4 View = glm::lookAt(
         glm::vec3(window_width/2, window_height/2, Z), // camera position
-        glm::vec3(window_width/2, window_height/2, 0), // look at origin
+        glm::vec3(window_width/2, window_height/2, -10), // look at origin
         glm::vec3(0, 1, 0)  // Head is up
     );  
     
      glm::mat4 Model = glm::mat4(1.0f);
-     //Model = glm::rotate(Model, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f)); 
+     Model = glm::rotate(Model, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); 
 
-    // Create Model-View-Projection matrix
      glm::mat4 MVP = Projection * View * Model;
         
-    // Send our transformation to the currently bound shader,
-    // in the "MVP" uniform
-    // For each model you render, since the MVP will be different (at least the M part)
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
-    /* 
-    glm::mat4 View;
-    View = glm::lookAt(
-            glm::vec3(0.0f, 0.0f, 3.0f), 
-            glm::vec3(0.0f, 0.0f, 0.0f), 
-            glm::vec3(0.0f, 1.0f, 0.0f));
-*/
 
     //------------------------------------------------------------------------------------------------  
     //                                  Clear Screen
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
     //------------------------------------------------------------------------------------------------
     //                                  Draw Stuff
-    int point_spread = 50;
-    vector<vec3> vertices;
-    vector<vec3> colors;
-    vertices.push_back(vec3(0,0,0));
-    vertices.push_back(vec3(0,window_height,0));
-    vertices.push_back(vec3(window_width,0,0));
-    vertices.push_back(vec3(window_width,window_height,0));
+    /*
+    vertices.push_back(vec3(0,0,-1));
+    vertices.push_back(vec3(0,window_height,-1));
+    vertices.push_back(vec3(window_width,0,-1));
+    vertices.push_back(vec3(window_width,window_height,-1));
     colors.push_back(vec3(1.0, 0.0, 0.0));
     colors.push_back(vec3(1.0, 0.0, 1.0));
     colors.push_back(vec3(0.0, 1.0, 0.0));
     colors.push_back(vec3(0.0, 0.0, 1.0));
+   */
+
+    vector<vector<vec3>> vertices;
+    vector<vector<vec3>> colors;
+
+    int point_spread = 25;
+    float current_range[2]={-1.0, 1.0};
+    float desired_range[2]={0, (float)window_height};
     
-    /*
-    for(int y=0; y<(window_height / point_spread); y++)
+    int w=(window_width/point_spread);
+    int h=(window_height/point_spread);
+    
+    for(int y=0; y<h; y++)
     {
-        for(int x=0; x<(window_width / point_spread); x++)
+        vector<vec3> current_strip;
+        vector<vec3> current_colors;
+        for(int x=0; x<=w; x++)
         {
-            float z = perlin_noise_2D(x/10,y/10);
+            for(int i=0;i<2;i++)
+            {
+                float z = range_map(perlin_noise_2D(x,y+i), current_range, desired_range);
+                current_strip.push_back(vec3(x*point_spread,((y+i)*point_spread),z));
+                current_colors.push_back(vec3(1.0,0.2,1.0));
+            }
+        }
+        vertices.push_back(current_strip);
+        colors.push_back(current_colors);
+    }
+/*
+        for(int x=0; x<=(window_width / point_spread); x++)
+        {
+            float z = perlin_noise_2D(x,y);
+            z=range_map(z, current_range, desired_range);
             vertices.push_back(vec3(x*point_spread,y*point_spread,z));
             colors.push_back(vec3(0.2,0.3,1.0));
             cout<<z<<endl;
@@ -233,34 +246,37 @@ void update(void)
     }*/
     
 
-    int s=vertices.size();
-    int s2= s*3;
-    GLfloat *vert = new GLfloat[s2];
-    GLfloat *col = new GLfloat[s2];
-    for (int i=0; i<s2; i++) 
+    for(int i=0; i<vertices.size(); i++)
     {
-        vert[i] = -0.1; 
-        col[i] = -0.1;
+        int s=vertices[i].size();
+        int buffer_size=s*3;
+        GLfloat *vert = new GLfloat[buffer_size];
+        GLfloat *col = new GLfloat[buffer_size];
+        for (int j=0; j<buffer_size; j++) 
+        {
+            vert[j] = -9001; 
+            col[j] = -9001;
+        }
+
+        for(int j=0; j<s; j++)
+        {
+            vertices[i][j].dump_into(vert);
+            colors[i][j].dump_into(col);
+        }
+
+        glDeleteBuffers(1,&vertex_buffer);
+        vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        attributeBind(vertex_buffer, 0, 3);
+
+        glDeleteBuffers(1,&color_buffer);
+        color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        attributeBind(color_buffer, 1, 3);
+
+        glDrawArrays(GL_TRIANGLE_STRIP,0,s);
+
+        delete [] vert;
+        delete [] col;
     }
-
-    for(int i=0; i<s; i++)
-    {
-        vertices[i].dump_into(vert);
-        colors[i].dump_into(col);
-    }
-
-    glDeleteBuffers(1,&vertex_buffer);
-    vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(s2), GL_STATIC_DRAW);
-    attributeBind(vertex_buffer, 0, 3);
-
-    glDeleteBuffers(1,&color_buffer);
-    color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(s2), GL_STATIC_DRAW);
-    attributeBind(color_buffer, 1, 3);
-
-    glDrawArrays(GL_TRIANGLE_STRIP,0,s);
-
-    delete [] vert;
-    delete [] col;
     //------------------------------------------------------------------------------------------------
     glutSwapBuffers(); //swap buffers
     //------------------------------------------------------------------------------------------------
