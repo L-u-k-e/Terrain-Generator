@@ -17,7 +17,7 @@ struct vec3
 
     void dump_into(GLfloat data[])
     {
-        //expects array to be intialized to null
+        //considers anything less than -9999 as empty
         //use with caution, dummy function might walk off the edge of the cliff. 
         int pos=0;
         while(true)
