@@ -84,14 +84,14 @@ void update(void);
 void recordMouseMotion(GLint xMouse, GLint yMouse);
 void keyDown(GLubyte key, GLint xMouse, GLint yMouse);
 void keyUp(GLubyte key, GLint xMouse, GLint yMouse); 
-
+void processUserInput(void);
 
 float range_map(float value, float current_range[], float desired_range[]);
 void swapVec3(vec3 *a, vec3 *b);
 vec3 getVertexColor(float z);
-void processUserInput(void);
-void updateCamera(void);
 
+void updateCamera(void);
+void setupCamera(void);
 //////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 
 int window_width=600;
@@ -109,15 +109,21 @@ GLuint vertex_buffer;
 GLuint color_buffer;
 
 glm::vec3 camera_position(0,0,0);
-glm::vec3 focal_point(0,0,0);
+glm::vec3 camera_direction(0,0,0);
+glm::vec3 camera_head(0,1.0,0);
 
 glm::mat4 Model = glm::mat4(1.0f);
 glm::mat4 View = glm::mat4(1.0f);
 glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 MVP = glm::mat4(1.0f);
 
-float movement=0.0;
+glm::vec3 movement(0.0,0.0,0.0);
 float movement_speed=7.5;
+
+float flatness=1.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
+
+GLenum fill_mode=GL_LINE;
+bool toggle_fill_mode=false;
 
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
@@ -187,34 +193,7 @@ void init(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, window_width, window_height);
 
-    //-----------------------------------------------------------------------------
-
-    //setup view, projection and model matrices
-    float fov_y = 45.0f;
-
-    //model
-    Model = glm::rotate(
-        Model, 
-        glm::radians(-90.0f), 
-        glm::vec3(1.0f, 0.0f, 0.0f)
-    ); 
-    
-    //view
-    float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
-    camera_position= glm::vec3(window_width/2, window_height/2, Z); 
-    focal_point= glm::vec3(window_width/2, window_height/2, 0);
-    View = glm::lookAt( 
-        camera_position, 
-        focal_point, 
-        glm::vec3(0.0,1.0,0.0)
-    );
-
-    //projection
-    float aspect_ratio=(float) window_width / (float) window_height;
-    Projection = glm::perspective(glm::radians(fov_y), aspect_ratio, 0.1f, 10000.0f);
-    
-    MVP = Projection * View * Model;
-    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
+    setupCamera();
 }
 
 
@@ -249,7 +228,7 @@ void update(void)
         {
             for(int i=0;i<2;i++)
             {
-                float z=perlin_noise_2D(x,y+i);
+                float z=perlin_noise_2D(x/flatness,(y+i)/flatness);
 
                 vec3 vertex_color=getVertexColor(z);
                 current_colors.push_back(vertex_color);
@@ -289,7 +268,7 @@ void update(void)
         color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
         attributeBind(color_buffer, 1, 3);
 
-        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+        glPolygonMode(GL_FRONT_AND_BACK,fill_mode);
         glDrawArrays(GL_TRIANGLE_STRIP,0,s);
 
         delete [] vert;
@@ -331,17 +310,23 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'w':
-            if(!movement) movement=-1.0;
+            if(!movement.z) movement.z=-1.0;
             break;
 
         case 's':
-            if(!movement) movement=1.0;
+            if(!movement.z) movement.z=1.0;
             break;
 
         case 'a':
+            if(!movement.x) movement.x=-1.0;
             break;
 
         case 'd':
+            if(!movement.x) movement.x=1.0;
+            break;
+
+        case 'm':
+            toggle_fill_mode=true;
             break;
 
         default:
@@ -358,17 +343,19 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'w':
-            if(movement == -1.0) movement=0;
+            if(movement.z == -1.0) movement.z=0;
             break;
 
         case 's':
-            if(movement == 1.0) movement=0;
+            if(movement.z == 1.0) movement.z=0;
             break;
 
         case 'a':
+            if(movement.x == -1.0) movement.x=0;
             break;
 
         case 'd':
+            if(movement.x == 1.0) movement.x=0;
             break;
 
         default:
@@ -403,17 +390,26 @@ vec3 getVertexColor(float z)
 
 void processUserInput(void)
 {
+    if(toggle_fill_mode)
+    {
+        if(fill_mode==GL_LINE)
+        {
+            fill_mode=GL_FILL;
+        }
+        else fill_mode=GL_LINE;
 
+        toggle_fill_mode=false;
+    }
 }
 
 void updateCamera(void)
 {
-    camera_position.z += (movement * movement_speed);
+    camera_position += (movement * movement_speed);
 
     View = glm::lookAt( 
         camera_position, 
-        focal_point, 
-        glm::vec3(0.0,1.0,0.0)
+        camera_position + camera_direction, 
+        camera_head
     );
 
     MVP = Projection * View * Model;
@@ -426,6 +422,36 @@ float range_map(float value, float r1[], float r2[])
     //r1 = current range
     //r2 = desired range
     return (value - r1[0]) * (r2[1] - r2[0]) / (r1[1] - r1[0]) + r2[0];                                                                                                
+}
+
+void setupCamera(void)
+{
+    //setup view, projection and model matrices
+    float fov_y = 45.0f;
+
+    //model
+    Model = glm::rotate(
+        Model, 
+        glm::radians(-90.0f), 
+        glm::vec3(1.0f, 0.0f, 0.0f)
+    ); 
+    
+    //view
+    float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
+    camera_position= glm::vec3(window_width/2, window_height/2, Z); 
+    camera_direction= glm::vec3(0,0,-1.0);
+    View = glm::lookAt( 
+        camera_position, 
+        camera_position + camera_direction, 
+        camera_head
+    );
+
+    //projection
+    float aspect_ratio=(float) window_width / (float) window_height;
+    Projection = glm::perspective(glm::radians(fov_y), aspect_ratio, 0.1f, 10000.0f);
+    
+    MVP = Projection * View * Model;
+    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 }
 
 void attributeBind(GLuint buffer, int index, int points)
