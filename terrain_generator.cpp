@@ -30,8 +30,8 @@ vec3 getVertexColor(float z);
 
 void updateCamera(void);
 void setupCamera(void);
-//////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 int window_width=600;
 int window_height=600;
 
@@ -94,7 +94,6 @@ int main(int argc, char **argv)
 
 void init(int width, int height) 
 {
-
     // Set display mode
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
 
@@ -147,6 +146,7 @@ void init(int width, int height)
     glViewport(0, 0, window_width, window_height);
 
     setupCamera();
+    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -195,13 +195,49 @@ void update(void)
         colors.push_back(current_colors);
     }
 
+    glEnable(GL_POLYGON_OFFSET_FILL); 
+    glPolygonOffset(2.0,5.0); 
     for(int i=0; i<vertices.size(); i++)
     {
         int s=vertices[i].size();
         int buffer_size=s*3;
         GLfloat *vert = new GLfloat[buffer_size];
-        GLfloat *col = new GLfloat[buffer_size];
+        GLfloat *col2 = new GLfloat[buffer_size];
         for (int j=0; j<buffer_size; j++) 
+        {
+            vert[j] = -10000; 
+            col2[j] = 0.0;
+        }
+
+        for(int j=0; j<s; j++)
+        {
+            vertices[i][j].dump_into(vert);
+        }
+
+        glDeleteBuffers(1,&vertex_buffer);
+        vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        attributeBind(vertex_buffer, 0, 3);
+
+        glDeleteBuffers(1,&color_buffer);
+        color_buffer = createBuffer(GL_ARRAY_BUFFER, col2, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        attributeBind(color_buffer, 1, 3);
+       
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+        glDrawArrays(GL_TRIANGLE_STRIP,0,s);
+
+        delete [] vert;
+        delete [] col2;
+    }
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    //glClear(GL_DEPTH_BUFFER_BIT); //clear screen
+    
+    for(int i=0; i<vertices.size();i++)
+    {
+        int s = vertices[i].size();
+        int buffer_size=s*3;
+        GLfloat *col = new GLfloat[buffer_size];
+        GLfloat *vert = new GLfloat[buffer_size];
+        for(int j=0; j<buffer_size; j++)
         {
             vert[j] = -10000; 
             col[j] = -10000;
@@ -221,7 +257,7 @@ void update(void)
         color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
         attributeBind(color_buffer, 1, 3);
 
-        glPolygonMode(GL_FRONT_AND_BACK,fill_mode);
+        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         glDrawArrays(GL_TRIANGLE_STRIP,0,s);
 
         delete [] vert;
@@ -468,7 +504,7 @@ void attributeBind(GLuint buffer, int index, int points)
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glVertexAttribPointer(
         index,              // position or color 
-        points,             // points 
+        points,             // how many dimensions? 
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
         0,                  // stride
