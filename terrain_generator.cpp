@@ -1,70 +1,8 @@
-#include "noise.cpp" //this file contains the perlin noise function and also all headers
+#include "include.hpp"
+#include "noise.cpp"
+#include "vec3.cpp"
 
 using namespace std;             
-
-////////////////////////////////////////////////////     STRUCTS      ////////////////////////////////////////////////////////////////////
-
-struct vec3
-{
-    GLfloat x,y,z;
-    vec3()
-    {
-        x=0;
-        y=0;
-        z=0;
-    }
-    vec3(GLfloat a, GLfloat b, GLfloat c)
-    {
-        x=a;
-        y=b;
-        z=c;
-    }
-
-    void dump_into(GLfloat data[])
-    {
-        //treats any value<0 as null
-        //use with caution, dummy function might walk off the edge of the cliff. 
-        int pos=0;
-        while(true)
-        {
-            if(data[pos]>=-9000)
-            {
-                pos++;
-            }
-            else break;
-        }
-        data[pos]=x;
-        data[pos+1]=y;
-        data[pos+2]=z;
-    }
-
-    void print(void)
-    {
-        cout<<"\nX:\t";
-        cout<<x;
-        cout<<"\nY:\t";
-        cout<<y;
-        cout<<"\nZ:\t";
-        cout<<z;
-        cout<<"\n";
-    }
-
-};
-
-struct rgb
-{
-    GLfloat red, green, blue;
-    rgb(GLfloat r, GLfloat g, GLfloat b)
-    {
-        red=r;
-        green=g;
-        blue=b;
-    }
-    rgb()
-    {
-    } 
-};
-
 
 ////////////////////////////////////////////////////     PROTOTYPES     ////////////////////////////////////////////////////////////////////
 
@@ -124,6 +62,7 @@ float flatness=1.0;//highervalue = flatter terrain. (this is not equivalent to "
 
 GLenum fill_mode=GL_LINE;
 bool toggle_fill_mode=false;
+
 
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
@@ -250,8 +189,8 @@ void update(void)
         GLfloat *col = new GLfloat[buffer_size];
         for (int j=0; j<buffer_size; j++) 
         {
-            vert[j] = -9001; 
-            col[j] = -9001;
+            vert[j] = -10000; 
+            col[j] = -10000;
         }
 
         for(int j=0; j<s; j++)

@@ -1,8 +1,3 @@
-#include "include.hpp"
-
-using namespace std;
-
-
 #define PI 3.1415927;
 
 float noise(int x, int y)
