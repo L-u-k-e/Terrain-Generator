@@ -38,7 +38,13 @@ int window_height=600;
 const char* fragment_shader = "fragment_shader.glsl";
 const char* vertex_shader   = "vertex_shader.glsl"; 
 
-int mouseX, mouseY;
+float mouseX, mouseY;
+float lastX, lastY;
+float sensitivity = 0.05f;
+float yaw, pitch;
+float scroll_speed=7.5;
+float scroll_boundary=25;
+
 
 GLuint programID;                     
 GLuint matrixID;   
@@ -102,6 +108,14 @@ void init(int width, int height)
 
     // Create display window
     glutCreateWindow("Assignment 1- Bresenham's algorithm");
+    
+    //setup mouse position
+    mouseX = window_width/2;
+    mouseY = window_height/2;
+    lastX = mouseX;
+    lastY = mouseY;
+    yaw=-90.0f;
+    pitch=0.0f;
 
     //tell glut to ignore multiple keyboard callbacks when holding down a key
     glutIgnoreKeyRepeat(1); 
@@ -238,6 +252,17 @@ void recordMouseMotion(GLint xMouse, GLint yMouse)
 {
     mouseX=xMouse;
     mouseY=window_height - yMouse;
+    //---------------------------------------
+    float xoffset = xMouse - lastX;
+    float yoffset = lastY - yMouse; // Reversed since y-coordinates range from bottom to top
+    lastX = xMouse;
+    lastY = yMouse;
+    
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    yaw   +=  xoffset;
+    pitch +=  yoffset; 
 }
 
 void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
@@ -339,11 +364,56 @@ void processUserInput(void)
 
         toggle_fill_mode=false;
     }
+
+
 }
 
 void updateCamera(void)
 {
-    camera_position += (movement * movement_speed);
+
+    if(mouseX>window_width-scroll_boundary)
+    {
+        yaw += scroll_speed * sensitivity;
+    }
+    else if(mouseX < scroll_boundary)
+    {
+        yaw -= scroll_speed * sensitivity;
+    }
+
+    if(mouseY>window_height-scroll_boundary)
+    {
+        pitch += scroll_speed * sensitivity;
+    }
+    else if(mouseY < scroll_boundary)
+    {
+        pitch -= scroll_speed * sensitivity;
+    }
+    
+
+    if(pitch > 89.0f)
+    {
+        pitch = 89.0f;
+    }
+    if(pitch < -89.0f)
+    {
+        pitch = -89.0f;
+    }
+
+    camera_direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
+    camera_direction.y = sin(glm::radians(pitch));
+    camera_direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
+    camera_direction = glm::normalize(camera_direction);  
+
+    
+    if(movement.z!=0.0)
+    {
+        camera_position -= (movement.z * movement_speed * camera_direction);
+    }
+
+    if(movement.x!=0.0)
+    {
+        camera_position -= (movement.x * movement_speed) * glm::normalize(glm::cross(camera_head, camera_direction));
+    }
 
     View = glm::lookAt( 
         camera_position, 
