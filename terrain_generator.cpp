@@ -381,7 +381,24 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 
 vec3 getVertexColor(float z)
 {
-    return vec3(1.0,0.0,0.0);
+    vec3 vertex_color;
+    if(z>0.45)
+    {
+        vertex_color=vec3(1.0,1.0,1.0);
+    }
+    else if(z>0.15)
+    {
+        vertex_color=vec3(0.4,0.4,0.4);
+    }
+    else if(z>-0.3)
+    {
+        vertex_color=vec3(0.0,1.0,0.0);
+    }
+    else
+    {
+        vertex_color=vec3(0.0,0.0,1.0);
+    }
+    return vertex_color;
 }
 
 void processUserInput(void)
