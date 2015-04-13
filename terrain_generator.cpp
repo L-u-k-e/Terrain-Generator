@@ -31,6 +31,8 @@ vec3 getVertexColor(float z);
 void updateCamera(void);
 void setupCamera(void);
 
+void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors);
+
 //////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 int window_width=600;
 int window_height=600;
@@ -147,6 +149,11 @@ void init(int width, int height)
 
     setupCamera();
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    glClearDepth(1.0);
+    glEnable(GL_POLYGON_OFFSET_FILL); 
+    glPolygonOffset(2.0,2.0); 
+   // glEnable(GL_LINE_SMOOTH);
 }
 
 
@@ -173,11 +180,11 @@ void update(void)
     int w=(window_width/point_spread);
     int h=(window_height/point_spread);
     
-    for(int y=0; y<h; y++)
+    for(int y=0; y<h*2; y++)
     {
         vector<vec3> current_strip;
         vector<vec3> current_colors;
-        for(int x=0; x<=w; x++)
+        for(int x=0; x<=w*2; x++)
         {
             for(int i=0;i<2;i++)
             {
@@ -195,74 +202,10 @@ void update(void)
         colors.push_back(current_colors);
     }
 
-    glEnable(GL_POLYGON_OFFSET_FILL); 
-    glPolygonOffset(2.0,5.0); 
-    for(int i=0; i<vertices.size(); i++)
-    {
-        int s=vertices[i].size();
-        int buffer_size=s*3;
-        GLfloat *vert = new GLfloat[buffer_size];
-        GLfloat *col2 = new GLfloat[buffer_size];
-        for (int j=0; j<buffer_size; j++) 
-        {
-            vert[j] = -10000; 
-            col2[j] = 0.0;
-        }
+    drawTerrain(vertices, colors);
 
-        for(int j=0; j<s; j++)
-        {
-            vertices[i][j].dump_into(vert);
-        }
 
-        glDeleteBuffers(1,&vertex_buffer);
-        vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
-        attributeBind(vertex_buffer, 0, 3);
-
-        glDeleteBuffers(1,&color_buffer);
-        color_buffer = createBuffer(GL_ARRAY_BUFFER, col2, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
-        attributeBind(color_buffer, 1, 3);
-       
-        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
-        glDrawArrays(GL_TRIANGLE_STRIP,0,s);
-
-        delete [] vert;
-        delete [] col2;
-    }
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    //glClear(GL_DEPTH_BUFFER_BIT); //clear screen
     
-    for(int i=0; i<vertices.size();i++)
-    {
-        int s = vertices[i].size();
-        int buffer_size=s*3;
-        GLfloat *col = new GLfloat[buffer_size];
-        GLfloat *vert = new GLfloat[buffer_size];
-        for(int j=0; j<buffer_size; j++)
-        {
-            vert[j] = -10000; 
-            col[j] = -10000;
-        }
-
-        for(int j=0; j<s; j++)
-        {
-            vertices[i][j].dump_into(vert);
-            colors[i][j].dump_into(col);
-        }
-
-        glDeleteBuffers(1,&vertex_buffer);
-        vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
-        attributeBind(vertex_buffer, 0, 3);
-
-        glDeleteBuffers(1,&color_buffer);
-        color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
-        attributeBind(color_buffer, 1, 3);
-
-        glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-        glDrawArrays(GL_TRIANGLE_STRIP,0,s);
-
-        delete [] vert;
-        delete [] col;
-    }
     //------------------------------------------------------------------------------------------------
     glutSwapBuffers(); //swap buffers
     //------------------------------------------------------------------------------------------------
@@ -366,28 +309,6 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 
 //////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
 
-vec3 getVertexColor(float z)
-{
-    vec3 vertex_color;
-    if(z>0.45)
-    {
-        vertex_color=vec3(1.0,1.0,1.0);
-    }
-    else if(z>0.15)
-    {
-        vertex_color=vec3(0.4,0.4,0.4);
-    }
-    else if(z>-0.3)
-    {
-        vertex_color=vec3(0.0,1.0,0.0);
-    }
-    else
-    {
-        vertex_color=vec3(0.0,0.0,1.0);
-    }
-    return vertex_color;
-}
-
 void processUserInput(void)
 {
     if(toggle_fill_mode)
@@ -462,12 +383,147 @@ void updateCamera(void)
 }
 
 
+
+
+
+
+
+
+
+
+
+//-----------------------------------------------------------------------------------------------
+
+
+void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors)
+{
+    for(int i=0; i<vertices.size(); i++)
+    {
+        int s=vertices[i].size();
+        int buffer_size=s*3;
+
+        GLfloat *vert = new GLfloat[buffer_size];  //vertices
+        GLfloat *col = new GLfloat[buffer_size];   //vertex colors
+        GLfloat *col2 = new GLfloat[buffer_size];  //filled with background color to help draw wireframe
+        
+        for (int j=0; j<buffer_size; j++) //intialize the arrays
+        {
+            vert[j] = -10000;  //see vec3::dump_into(array)
+            col[j] = -10000;   //see vec3::dump_into(array)
+            col2[j] = 0.0;     //fill with black
+        }
+
+        for(int j=0; j<s; j++) //fill the vertex and color arrays (soon to be buffers)
+        {
+            vertices[i][j].dump_into(vert);
+            colors[i][j].dump_into(col);
+        }
+
+        //create vertex buffer and bind to AA 0
+        glDeleteBuffers(1,&vertex_buffer);
+        vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        attributeBind(vertex_buffer, 0, 3);
+
+        //create color buffer based on fill mode  and bind to AA 1.
+        glDeleteBuffers(1,&color_buffer);
+        if(fill_mode==GL_FILL)
+        {
+            color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        }
+        else
+        {
+            color_buffer = createBuffer(GL_ARRAY_BUFFER, col2, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+        }
+        attributeBind(color_buffer, 1, 3);
+       
+        //draw polygons, colored based on fill mode
+        glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+        glDrawArrays(GL_TRIANGLE_STRIP,0,s);
+        
+       // glClear(GL_DEPTH_BUFFER_BIT);
+        if(fill_mode==GL_LINE)
+        {
+            //increase vertex buffer z coords
+           /* for(int j=1; j<buffer_size; j+=3)
+            {
+                vert[j]-=0.0;
+            }
+
+            //create vertex buffer and bind to AA 0
+            glDeleteBuffers(1,&vertex_buffer);
+            vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vert, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+            attributeBind(vertex_buffer, 0, 3);
+*/
+            //swap out current color buffer for the true vertex colors and bind it to AA 1
+            glDeleteBuffers(1,&color_buffer);
+            color_buffer = createBuffer(GL_ARRAY_BUFFER, col, sizeof(GLfloat)*(buffer_size), GL_STATIC_DRAW);
+            attributeBind(color_buffer, 1, 3);
+
+            //draw colored/wireframe polygons on top of invisible ones
+            //This works because we increased the Z value of all GL_LINE polygons in the setup stage with glPolygonOffset()
+            glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+            glDrawArrays(GL_TRIANGLE_STRIP,0,s);
+        }
+        //clean up after yourself you savage
+        delete [] vert;
+        delete [] col;
+        delete [] col2;
+    }
+}
+
+vec3 getVertexColor(float z)
+{
+    vec3 vertex_color;
+    if(z>0.45)
+    {
+        vertex_color=vec3(1.0,1.0,1.0);
+    }
+    else if(z>0.15)
+    {
+        vertex_color=vec3(0.4,0.4,0.4);
+    }
+    else if(z>-0.3)
+    {
+        vertex_color=vec3(0.0,1.0,0.0);
+    }
+    else
+    {
+        vertex_color=vec3(0.0,0.0,1.0);
+    }
+    return vertex_color;
+}
+
 float range_map(float value, float r1[], float r2[])
 {
     //r1 = current range
     //r2 = desired range
     return (value - r1[0]) * (r2[1] - r2[0]) / (r1[1] - r1[0]) + r2[0];                                                                                                
 }
+
+void attributeBind(GLuint buffer, int index, int points)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glVertexAttribPointer(
+        index,              // position or color 
+        points,             // how many dimensions? 
+        GL_FLOAT,           // type
+        GL_FALSE,           // normalized?
+        0,                  // stride
+        (void*)0            // array buffer offset
+    );
+}
+
+
+GLuint createBuffer(GLenum target, const void *buffer_data, GLsizei buffer_size, GLenum usageHint) 
+{
+    GLuint buffer;
+    glGenBuffers(1, &buffer); 
+    glBindBuffer(target, buffer);
+    glBufferData(target, buffer_size, buffer_data, usageHint);
+    return buffer;
+}
+
+//-----------------------------------------------------------------------------------------------
 
 void setupCamera(void)
 {
@@ -499,28 +555,13 @@ void setupCamera(void)
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 }
 
-void attributeBind(GLuint buffer, int index, int points)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glVertexAttribPointer(
-        index,              // position or color 
-        points,             // how many dimensions? 
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
-    );
-}
+
+//-----------------------------------------------------------------------------------------------
 
 
-GLuint createBuffer(GLenum target, const void *buffer_data, GLsizei buffer_size, GLenum usageHint) 
-{
-    GLuint buffer;
-    glGenBuffers(1, &buffer); 
-    glBindBuffer(target, buffer);
-    glBufferData(target, buffer_size, buffer_data, usageHint);
-    return buffer;
-}
+
+
+
 
 
 void swapVec3(vec3 *a, vec3 *b)
