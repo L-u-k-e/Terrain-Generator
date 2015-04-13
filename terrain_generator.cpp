@@ -69,7 +69,7 @@ glm::mat4 MVP = glm::mat4(1.0f);
 glm::vec3 movement(0.0,0.0,0.0);
 float movement_speed;
 
-float flatness=3.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
+float flatness=25.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
 
 GLenum fill_mode=GL_LINE;
 bool toggle_fill_mode=false;
@@ -175,12 +175,7 @@ void update(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
-
-   
-
     drawTerrain(vertices, colors);
-
-
     
     //------------------------------------------------------------------------------------------------
     glutSwapBuffers(); //swap buffers
@@ -386,11 +381,11 @@ void createTerrain(void)
     int w=(window_width/point_spread);
     int h=(window_height/point_spread);
   
-    for(int y=0; y<h*6; y++)
+    for(int y=0; y<h*7; y++)
     {
         vector<vec3> current_strip;
         vector<vec3> current_colors;
-        for(int x=0; x<=w*3; x++)
+        for(int x=0; x<=w*7; x++)
         {
             for(int i=0;i<2;i++)
             {
