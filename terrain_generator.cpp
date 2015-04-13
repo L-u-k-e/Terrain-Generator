@@ -175,6 +175,7 @@ void update(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
+//    createTerrain();
     drawTerrain(vertices, colors);
     
     //------------------------------------------------------------------------------------------------
@@ -242,7 +243,8 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'm':
-            toggle_fill_mode=true;
+            //toggle_fill_mode=true;
+            createTerrain();
             break;
 
         default:
@@ -283,7 +285,7 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 //////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
 void calculateMovementSpeed(void)
 {
-    scroll_speed=((window_width + window_height)/2)/10;
+    scroll_speed=((window_width + window_height)/2)/4;
     movement_speed=scroll_speed;
 }
 void processUserInput(void)
@@ -374,29 +376,38 @@ void updateCamera(void)
 
 void createTerrain(void)
 {
+    int seed=200000;
+    vertices.clear();
+    colors.clear();
     int point_spread = 50;
     float current_range[2]={-1.0, 1.0};
     float desired_range[2]={(float) -window_height, (float)window_height};
     
     int w=(window_width/point_spread);
     int h=(window_height/point_spread);
-  
-    for(int y=0; y<h*7; y++)
+    int block_size=100;
+    int half_block_size=block_size/2;
+    int centerX=camera_position.x/point_spread;
+    int centerY=camera_position.y/point_spread;
+
+    for(int y=centerY-half_block_size; y<centerY+half_block_size; y++)
     {
         vector<vec3> current_strip;
         vector<vec3> current_colors;
-        for(int x=0; x<=w*7; x++)
+        for(int x=centerX-half_block_size; x<centerX+half_block_size; x++)
         {
+            int xVal=x;
             for(int i=0;i<2;i++)
             {
-                float z=perlin_noise_2D(x/flatness,(y+i)/flatness);
+                int yVal=y+i;
+                float z=perlin_noise_2D((xVal+seed)/flatness, (yVal+seed)/flatness);
 
                 vec3 vertex_color=getVertexColor(z);
                 current_colors.push_back(vertex_color);
                 
                 z = range_map(z, current_range, desired_range);
-                vec3 vertex_position(x*point_spread,((y+i)*point_spread),z);
-                current_strip.push_back(vec3(x*point_spread,((y+i)*point_spread),z));
+                vec3 vertex_position(xVal*point_spread, yVal*point_spread, z);
+                current_strip.push_back(vertex_position);
             }
         }
         vertices.push_back(current_strip);
