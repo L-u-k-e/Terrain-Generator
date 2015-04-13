@@ -12,4 +12,4 @@ coming along:
 
 
 
-compile with g++ using the following options: -lglut -lGLEW -lGL -lGLU -std=c++11
+compile with g++ using the following options: `-lglut -lGLEW -lGL -lGLU -std=c++11`
