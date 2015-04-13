@@ -32,6 +32,9 @@ void updateCamera(void);
 void setupCamera(void);
 
 void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors);
+void createTerrain(void);
+
+void calculateMovementSpeed(void);
 
 //////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 int window_width=600;
@@ -44,7 +47,7 @@ float mouseX, mouseY;
 float lastX, lastY;
 float sensitivity = 0.05f;
 float yaw, pitch;
-float scroll_speed=7.5;
+float scroll_speed;
 float scroll_boundary=25;
 
 
@@ -64,13 +67,15 @@ glm::mat4 Projection = glm::mat4(1.0f);
 glm::mat4 MVP = glm::mat4(1.0f);
 
 glm::vec3 movement(0.0,0.0,0.0);
-float movement_speed=7.5;
+float movement_speed;
 
-float flatness=1.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
+float flatness=3.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
 
 GLenum fill_mode=GL_LINE;
 bool toggle_fill_mode=false;
 
+vector<vector<vec3>> vertices;
+vector<vector<vec3>> colors;
 
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
@@ -153,7 +158,8 @@ void init(int width, int height)
     glClearDepth(1.0);
     glEnable(GL_POLYGON_OFFSET_FILL); 
     glPolygonOffset(2.0,2.0); 
-   // glEnable(GL_LINE_SMOOTH);
+
+    createTerrain();
 }
 
 
@@ -169,38 +175,8 @@ void update(void)
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
-    vector<vector<vec3>> vertices;
-    vector<vector<vec3>> colors;
 
-
-    int point_spread = 50;
-    float current_range[2]={-1.0, 1.0};
-    float desired_range[2]={(float) -window_height/2.0f, (float)window_height/2.0f};
-    
-    int w=(window_width/point_spread);
-    int h=(window_height/point_spread);
-    
-    for(int y=0; y<h*2; y++)
-    {
-        vector<vec3> current_strip;
-        vector<vec3> current_colors;
-        for(int x=0; x<=w*2; x++)
-        {
-            for(int i=0;i<2;i++)
-            {
-                float z=perlin_noise_2D(x/flatness,(y+i)/flatness);
-
-                vec3 vertex_color=getVertexColor(z);
-                current_colors.push_back(vertex_color);
-                
-                z = range_map(z, current_range, desired_range);
-                vec3 vertex_position(x*point_spread,((y+i)*point_spread),z);
-                current_strip.push_back(vec3(x*point_spread,((y+i)*point_spread),z));
-            }
-        }
-        vertices.push_back(current_strip);
-        colors.push_back(current_colors);
-    }
+   
 
     drawTerrain(vertices, colors);
 
@@ -221,6 +197,8 @@ void resize(int width, int height)
     // Store current window width and height
     window_width = width;
     window_height = height;
+
+    calculateMovementSpeed();
 }
 
 
@@ -308,7 +286,11 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 }
 
 //////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
-
+void calculateMovementSpeed(void)
+{
+    scroll_speed=((window_width + window_height)/2)/10;
+    movement_speed=scroll_speed;
+}
 void processUserInput(void)
 {
     if(toggle_fill_mode)
@@ -394,6 +376,38 @@ void updateCamera(void)
 
 //-----------------------------------------------------------------------------------------------
 
+
+void createTerrain(void)
+{
+    int point_spread = 50;
+    float current_range[2]={-1.0, 1.0};
+    float desired_range[2]={(float) -window_height, (float)window_height};
+    
+    int w=(window_width/point_spread);
+    int h=(window_height/point_spread);
+  
+    for(int y=0; y<h*6; y++)
+    {
+        vector<vec3> current_strip;
+        vector<vec3> current_colors;
+        for(int x=0; x<=w*3; x++)
+        {
+            for(int i=0;i<2;i++)
+            {
+                float z=perlin_noise_2D(x/flatness,(y+i)/flatness);
+
+                vec3 vertex_color=getVertexColor(z);
+                current_colors.push_back(vertex_color);
+                
+                z = range_map(z, current_range, desired_range);
+                vec3 vertex_position(x*point_spread,((y+i)*point_spread),z);
+                current_strip.push_back(vec3(x*point_spread,((y+i)*point_spread),z));
+            }
+        }
+        vertices.push_back(current_strip);
+        colors.push_back(current_colors);
+    }
+}
 
 void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors)
 {

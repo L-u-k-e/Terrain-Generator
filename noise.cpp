@@ -46,8 +46,8 @@ float interpolated_noise(float x, float y)
 
 float perlin_noise_2D(float x, float y)
 {
-    int octaves=5;
-    float persistence=0.5;
+    int octaves=3;
+    float persistence=0.2;
     float total = 0;
 
     for(int i=0; i<octaves-1; i++)
