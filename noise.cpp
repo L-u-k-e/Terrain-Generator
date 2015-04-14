@@ -1,5 +1,8 @@
 #define PI 3.1415927;
 
+int octaves=3;
+float persistence=0.9;
+
 float noise(int x, int y)
 {
     int n = x + y * 57;
@@ -46,8 +49,6 @@ float interpolated_noise(float x, float y)
 
 float perlin_noise_2D(float x, float y)
 {
-    int octaves=5;
-    float persistence=1.0;
     float total = 0;
 
     for(int i=0; i<octaves-1; i++)

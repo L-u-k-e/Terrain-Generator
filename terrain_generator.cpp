@@ -69,13 +69,17 @@ glm::mat4 MVP = glm::mat4(1.0f);
 glm::vec3 movement(0.0,0.0,0.0);
 float movement_speed;
 
-float flatness=25.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
+float flatness=20.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
+int point_spread = 50;
 
 GLenum fill_mode=GL_LINE;
 bool toggle_fill_mode=false;
 
 vector<vector<vec3>> vertices;
 vector<vector<vec3>> colors;
+
+float terrain_control_signal[] = {0,0,0,0};
+float terrain_control_increment[] = {1.0, 1.0, 1.0, 0.1};
 
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
@@ -242,6 +246,36 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             if(!movement.x) movement.x=1.0;
             break;
 
+
+
+        case 'u':
+            terrain_control_signal[0]=-1.0;    //point spread
+            break;
+        case 'U':
+            terrain_control_signal[0]=1.0;
+            break;
+
+        case 'i':
+            terrain_control_signal[1]=-1.0;    //flatness
+            break;
+        case 'I':
+            terrain_control_signal[1]=1.0;
+            break;
+
+        case 'o':
+            terrain_control_signal[2]=-1.0;    //octaves
+            break;
+        case 'O':
+            terrain_control_signal[2]=1.0;
+            break;
+
+        case 'p':
+            terrain_control_signal[3]=-1.0;   //persistence
+            break;
+        case 'P':
+            terrain_control_signal[3]=1.0;
+            break;
+
         case 'm':
             //toggle_fill_mode=true;
             createTerrain();
@@ -276,6 +310,35 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
             if(movement.x == 1.0) movement.x=0;
             break;
 
+        case 'u':
+            terrain_control_signal[0]=0.0;    //point spread
+            break;
+        case 'U':
+            terrain_control_signal[0]=0.0;
+            break;
+
+        case 'i':
+            terrain_control_signal[1]=0.0;    //flatness
+            break;
+        case 'I':
+            terrain_control_signal[1]=0.0;
+            break;
+
+        case 'o':
+            terrain_control_signal[2]=0.0;    //octaves
+            break;
+        case 'O':
+            terrain_control_signal[2]=0.0;
+            break;
+
+        case 'p':
+            terrain_control_signal[3]=0.0;   //persistence
+            break;
+        case 'P':
+            terrain_control_signal[3]=0.0;
+            break;
+
+
         default:
             break;
     }
@@ -300,8 +363,25 @@ void processUserInput(void)
 
         toggle_fill_mode=false;
     }
+    
+    bool new_terrain_required=false;
+    for(int i=0; i<3; i++)
+    {
+        if(terrain_control_signal[i]!=0.0)
+        {
+            new_terrain_required=true;
+        }
+    }
 
+    point_spread+=(terrain_control_signal[0]*terrain_control_increment[0]);
+    flatness+=(terrain_control_signal[1]*terrain_control_increment[1]);
+    octaves+=(terrain_control_signal[2]*terrain_control_increment[2]);
+    persistence+=(terrain_control_signal[3]*terrain_control_increment[3]);
 
+    if(new_terrain_required)
+    {
+        createTerrain();
+    }
 }
 
 void updateCamera(void)
@@ -379,7 +459,6 @@ void createTerrain(void)
     int seed=200000;
     vertices.clear();
     colors.clear();
-    int point_spread = 50;
     float current_range[2]={-1.0, 1.0};
     float desired_range[2]={(float) -window_height, (float)window_height};
     
