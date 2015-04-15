@@ -33,6 +33,7 @@ void setupCamera(void);
 
 void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors);
 void createTerrain(void);
+void printTerrainInfo();
 
 void calculateMovementSpeed(void);
 
@@ -70,7 +71,7 @@ glm::vec3 movement(0.0,0.0,0.0);
 float movement_speed;
 
 float flatness=20.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
-int point_spread = 50;
+float point_spread = 50;
 
 GLenum fill_mode=GL_LINE;
 bool toggle_fill_mode=false;
@@ -78,8 +79,10 @@ bool toggle_fill_mode=false;
 vector<vector<vec3>> vertices;
 vector<vector<vec3>> colors;
 
-float terrain_control_signal[] = {0,0,0,0};
-float terrain_control_increment[] = {1.0, 1.0, 1.0, 0.1};
+float *terrain_control_variables[4]  = {&point_spread,   &flatness,   &octaves,   &persistence };
+float terrain_control_signals[4]     = {      0,             0,           0,           0       };
+float terrain_control_increments[4]  = {     1.0,           1.0,         1.0,         0.1      };
+float terrain_control_bounds[8]      = {   1.0,100.0,     1.0,50.0,    1.0,8.0,     0.1,0.9    };
 
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
@@ -164,6 +167,7 @@ void init(int width, int height)
     glPolygonOffset(2.0,2.0); 
 
     createTerrain();
+    printTerrainInfo(); 
 }
 
 
@@ -249,31 +253,31 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
 
 
         case 'u':
-            terrain_control_signal[0]=-1.0;    //point spread
+            terrain_control_signals[0]=-1.0;    //point spread
             break;
         case 'U':
-            terrain_control_signal[0]=1.0;
+            terrain_control_signals[0]=1.0;
             break;
 
         case 'i':
-            terrain_control_signal[1]=-1.0;    //flatness
+            terrain_control_signals[1]=-1.0;    //flatness
             break;
         case 'I':
-            terrain_control_signal[1]=1.0;
+            terrain_control_signals[1]=1.0;
             break;
 
         case 'o':
-            terrain_control_signal[2]=-1.0;    //octaves
+            terrain_control_signals[2]=-1.0;    //octaves
             break;
         case 'O':
-            terrain_control_signal[2]=1.0;
+            terrain_control_signals[2]=1.0;
             break;
 
         case 'p':
-            terrain_control_signal[3]=-1.0;   //persistence
+            terrain_control_signals[3]=-1.0;   //persistence
             break;
         case 'P':
-            terrain_control_signal[3]=1.0;
+            terrain_control_signals[3]=1.0;
             break;
 
         case 'm':
@@ -311,31 +315,31 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'u':
-            terrain_control_signal[0]=0.0;    //point spread
+            terrain_control_signals[0]=0.0;    //point spread
             break;
         case 'U':
-            terrain_control_signal[0]=0.0;
+            terrain_control_signals[0]=0.0;
             break;
 
         case 'i':
-            terrain_control_signal[1]=0.0;    //flatness
+            terrain_control_signals[1]=0.0;    //flatness
             break;
         case 'I':
-            terrain_control_signal[1]=0.0;
+            terrain_control_signals[1]=0.0;
             break;
 
         case 'o':
-            terrain_control_signal[2]=0.0;    //octaves
+            terrain_control_signals[2]=0.0;    //octaves
             break;
         case 'O':
-            terrain_control_signal[2]=0.0;
+            terrain_control_signals[2]=0.0;
             break;
 
         case 'p':
-            terrain_control_signal[3]=0.0;   //persistence
+            terrain_control_signals[3]=0.0;   //persistence
             break;
         case 'P':
-            terrain_control_signal[3]=0.0;
+            terrain_control_signals[3]=0.0;
             break;
 
 
@@ -365,22 +369,33 @@ void processUserInput(void)
     }
     
     bool new_terrain_required=false;
-    for(int i=0; i<3; i++)
+    for(int i=0; i<4; i++)
     {
-        if(terrain_control_signal[i]!=0.0)
+        float *variable=terrain_control_variables[i];
+        int min=terrain_control_bounds[i*2];
+        int max=terrain_control_bounds[(i*2)+1];
+        if(terrain_control_signals[i]!=0.0)
         {
             new_terrain_required=true;
         }
+        
+        *variable += terrain_control_signals[i] * terrain_control_increments[i];
+
+        if(*variable<min) *variable=min;
+        else if(*variable>max) *variable=max;
+        
+        terrain_control_signals[i]=0.0;
     }
 
-    point_spread+=(terrain_control_signal[0]*terrain_control_increment[0]);
+/*  point_spread+=(terrain_control_signal[0]*terrain_control_increment[0]);
     flatness+=(terrain_control_signal[1]*terrain_control_increment[1]);
     octaves+=(terrain_control_signal[2]*terrain_control_increment[2]);
     persistence+=(terrain_control_signal[3]*terrain_control_increment[3]);
-
+*/
     if(new_terrain_required)
     {
         createTerrain();
+        printTerrainInfo(); 
     }
 }
 
@@ -494,6 +509,7 @@ void createTerrain(void)
     }
 }
 
+
 void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors)
 {
     for(int i=0; i<vertices.size(); i++)
@@ -598,6 +614,25 @@ float range_map(float value, float r1[], float r2[])
     //r2 = desired range
     return (value - r1[0]) * (r2[1] - r2[0]) / (r1[1] - r1[0]) + r2[0];                                                                                                
 }
+
+void printTerrainInfo()
+{
+    cout<<endl;
+    cout<<endl;
+    cout<<"Octaves: ";
+    cout<<octaves;
+    cout<<"\tPersistence: ";
+    cout<<persistence;
+    cout<<"\tFlatness: ";
+    cout<<flatness;
+    cout<<"\tPoint Spread: ";
+    cout<<point_spread;
+    cout<<endl;
+    cout<<endl;
+}
+
+
+
 
 void attributeBind(GLuint buffer, int index, int points)
 {
