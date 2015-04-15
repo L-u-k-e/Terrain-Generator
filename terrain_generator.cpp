@@ -372,8 +372,8 @@ void processUserInput(void)
     for(int i=0; i<4; i++)
     {
         float *variable=terrain_control_variables[i];
-        int min=terrain_control_bounds[i*2];
-        int max=terrain_control_bounds[(i*2)+1];
+        float min=terrain_control_bounds[i*2];
+        float max=terrain_control_bounds[(i*2)+1];
         if(terrain_control_signals[i]!=0.0)
         {
             new_terrain_required=true;

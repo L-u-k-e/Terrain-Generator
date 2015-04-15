@@ -1,6 +1,6 @@
 #define PI 3.1415927;
 
-float octaves=3;
+float octaves=4;
 float persistence=0.9;
 
 float noise(int x, int y)
