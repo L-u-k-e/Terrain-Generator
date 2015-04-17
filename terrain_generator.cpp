@@ -1,6 +1,13 @@
-#include "include.hpp"
+#include "libraries.hpp"
+#include "globals.cpp"
 #include "noise.cpp"
 #include "vec3.cpp"
+#include "terrain.cpp"
+#include "camera.cpp"
+#include "mouse_event_handler.cpp"
+#include "keyboard_event_handler.cpp"
+#include "loadShaders.cpp"
+
 
 using namespace std;             
 
@@ -213,7 +220,7 @@ void recordMouseMotion(GLint xMouse, GLint yMouse)
 {
     mouseX=xMouse;
     mouseY=window_height - yMouse;
-    //---------------------------------------
+ 
     float xoffset = xMouse - lastX;
     float yoffset = lastY - yMouse; // Reversed since y-coordinates range from bottom to top
     lastX = xMouse;
@@ -355,6 +362,7 @@ void calculateMovementSpeed(void)
     scroll_speed=((window_width + window_height)/2)/4;
     movement_speed=scroll_speed;
 }
+
 void processUserInput(void)
 {
     if(toggle_fill_mode)

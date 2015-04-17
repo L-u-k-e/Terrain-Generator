@@ -37,3 +37,9 @@ a
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+
+# Backups and swaps #
+#####################
+*~
+*.swp
