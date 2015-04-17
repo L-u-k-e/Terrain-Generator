@@ -387,11 +387,6 @@ void processUserInput(void)
         terrain_control_signals[i]=0.0;
     }
 
-/*  point_spread+=(terrain_control_signal[0]*terrain_control_increment[0]);
-    flatness+=(terrain_control_signal[1]*terrain_control_increment[1]);
-    octaves+=(terrain_control_signal[2]*terrain_control_increment[2]);
-    persistence+=(terrain_control_signal[3]*terrain_control_increment[3]);
-*/
     if(new_terrain_required)
     {
         createTerrain();
