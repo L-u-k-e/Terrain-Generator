@@ -34,9 +34,6 @@ float range_map(float value, float current_range[], float desired_range[]);
 void swapVec3(vec3 *a, vec3 *b);
 vec3 getVertexColor(float z);
 
-void updateCamera(void);
-void setupCamera(void);
-
 void drawTerrain(vector<vector<vec3>> vertices, vector<vector<vec3>> colors);
 void createTerrain(void);
 void printTerrainInfo();
@@ -49,30 +46,8 @@ void calculateMovementSpeed(void);
 const char* fragment_shader = "fragment_shader.glsl";
 const char* vertex_shader   = "vertex_shader.glsl"; 
 
-
-float lastX, lastY;
-float sensitivity = 0.05f;
-float yaw, pitch;
-float scroll_speed;
-float scroll_boundary=25;
-
-
-  
-
 GLuint vertex_buffer;
 GLuint color_buffer;
-
-glm::vec3 camera_position(0,0,0);
-glm::vec3 camera_direction(0,0,0);
-glm::vec3 camera_head(0,1.0,0);
-
-glm::mat4 Model = glm::mat4(1.0f);
-glm::mat4 View = glm::mat4(1.0f);
-glm::mat4 Projection = glm::mat4(1.0f);
-glm::mat4 MVP = glm::mat4(1.0f);
-
-glm::vec3 movement(0.0,0.0,0.0);
-float movement_speed;
 
 float flatness=20.0;//highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
 float point_spread = 50;
@@ -88,10 +63,12 @@ float terrain_control_signals[4]     = {      0,             0,           0,    
 float terrain_control_increments[4]  = {     1.0,           1.0,         1.0,         0.1      };
 float terrain_control_bounds[8]      = {   1.0,100.0,     1.0,50.0,    1.0,8.0,     0.1,0.9    };
 
+camera cam;
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 
-{  
+{ 
+    cout<<cam.head.y<<endl;
     glutInit(&argc, argv);   
     
     init(window_width,window_height);
@@ -131,8 +108,6 @@ void init(int width, int height)
     mouseY = window_height/2;
     lastX = mouseX;
     lastY = mouseY;
-    yaw=-90.0f;
-    pitch=0.0f;
 
     //tell glut to ignore multiple keyboard callbacks when holding down a key
     glutIgnoreKeyRepeat(1); 
@@ -163,7 +138,6 @@ void init(int width, int height)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glViewport(0, 0, window_width, window_height);
 
-    setupCamera();
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0);
@@ -183,7 +157,7 @@ void init(int width, int height)
 void update(void)
 {   
     processUserInput();
-    updateCamera();
+    cam.update();
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
@@ -206,7 +180,7 @@ void resize(int width, int height)
     window_width = width;
     window_height = height;
 
-    calculateMovementSpeed();
+    cam.calculateMovementSpeed();
 }
 
 
@@ -223,11 +197,11 @@ void recordMouseMotion(GLint xMouse, GLint yMouse)
     lastX = xMouse;
     lastY = yMouse;
     
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
+    xoffset *= cam.sensitivity;
+    yoffset *= cam.sensitivity;
 
-    yaw   +=  xoffset;
-    pitch +=  yoffset; 
+    cam.yaw   +=  xoffset;
+    cam.pitch +=  yoffset; 
 }
 
 void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
@@ -239,19 +213,19 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'w':
-            if(!movement.z) movement.z=-1.0;
+            if(!cam.move_signal.z) cam.move_signal.z=-1.0;
             break;
 
         case 's':
-            if(!movement.z) movement.z=1.0;
+            if(!cam.move_signal.z) cam.move_signal.z=1.0;
             break;
 
         case 'a':
-            if(!movement.x) movement.x=-1.0;
+            if(!cam.move_signal.x) cam.move_signal.x=-1.0;
             break;
 
         case 'd':
-            if(!movement.x) movement.x=1.0;
+            if(!cam.move_signal.x) cam.move_signal.x=1.0;
             break;
 
 
@@ -303,19 +277,19 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'w':
-            if(movement.z == -1.0) movement.z=0;
+            if(cam.move_signal.z == -1.0) cam.move_signal.z=0;
             break;
 
         case 's':
-            if(movement.z == 1.0) movement.z=0;
+            if(cam.move_signal.z == 1.0) cam.move_signal.z=0;
             break;
 
         case 'a':
-            if(movement.x == -1.0) movement.x=0;
+            if(cam.move_signal.x == -1.0) cam.move_signal.x=0;
             break;
 
         case 'd':
-            if(movement.x == 1.0) movement.x=0;
+            if(cam.move_signal.x == 1.0) cam.move_signal.x=0;
             break;
 
         case 'u':
@@ -354,11 +328,7 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 }
 
 //////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
-void calculateMovementSpeed(void)
-{
-    scroll_speed=((window_width + window_height)/2)/4;
-    movement_speed=scroll_speed;
-}
+
 
 void processUserInput(void)
 {
@@ -399,62 +369,6 @@ void processUserInput(void)
     }
 }
 
-void updateCamera(void)
-{
-
-    if(mouseX>window_width-scroll_boundary)
-    {
-        yaw += scroll_speed * sensitivity;
-    }
-    else if(mouseX < scroll_boundary)
-    {
-        yaw -= scroll_speed * sensitivity;
-    }
-
-    if(mouseY>window_height-scroll_boundary)
-    {
-        pitch += scroll_speed * sensitivity;
-    }
-    else if(mouseY < scroll_boundary)
-    {
-        pitch -= scroll_speed * sensitivity;
-    }
-    
-
-    if(pitch > 89.0f)
-    {
-        pitch = 89.0f;
-    }
-    if(pitch < -89.0f)
-    {
-        pitch = -89.0f;
-    }
-
-    camera_direction.x = cos(glm::radians(pitch)) * cos(glm::radians(yaw));
-    camera_direction.y = sin(glm::radians(pitch));
-    camera_direction.z = cos(glm::radians(pitch)) * sin(glm::radians(yaw));
-    camera_direction = glm::normalize(camera_direction);  
-
-    
-    if(movement.z!=0.0)
-    {
-        camera_position -= (movement.z * movement_speed * camera_direction);
-    }
-
-    if(movement.x!=0.0)
-    {
-        camera_position -= (movement.x * movement_speed) * glm::normalize(glm::cross(camera_head, camera_direction));
-    }
-
-    View = glm::lookAt( 
-        camera_position, 
-        camera_position + camera_direction, 
-        camera_head
-    );
-
-    MVP = Projection * View * Model;
-    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
-}
 
 
 
@@ -481,8 +395,8 @@ void createTerrain(void)
     int h=(window_height/point_spread);
     int block_size=100;
     int half_block_size=block_size/2;
-    int centerX=camera_position.x/point_spread;
-    int centerY=camera_position.y/point_spread;
+    int centerX=cam.position.x/point_spread;
+    int centerY=cam.position.y/point_spread;
 
     for(int y=centerY-half_block_size; y<centerY+half_block_size; y++)
     {
@@ -656,47 +570,6 @@ GLuint createBuffer(GLenum target, const void *buffer_data, GLsizei buffer_size,
     glBufferData(target, buffer_size, buffer_data, usageHint);
     return buffer;
 }
-
-//-----------------------------------------------------------------------------------------------
-
-void setupCamera(void)
-{
-    //setup view, projection and model matrices
-    float fov_y = 45.0f;
-
-    //model
-    Model = glm::rotate(
-        Model, 
-        glm::radians(-90.0f), 
-        glm::vec3(1.0f, 0.0f, 0.0f)
-    ); 
-    
-    //view
-    float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
-    camera_position= glm::vec3(window_width/2, window_height/2, Z); 
-    camera_direction= glm::vec3(0,0,-1.0);
-    View = glm::lookAt( 
-        camera_position, 
-        camera_position + camera_direction, 
-        camera_head
-    );
-
-    //projection
-    float aspect_ratio=(float) window_width / (float) window_height;
-    Projection = glm::perspective(glm::radians(fov_y), aspect_ratio, 0.1f, 10000.0f);
-    
-    MVP = Projection * View * Model;
-    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
-}
-
-
-//-----------------------------------------------------------------------------------------------
-
-
-
-
-
-
 
 void swapVec3(vec3 *a, vec3 *b)
 {

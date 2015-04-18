@@ -1,4 +1,5 @@
 float mouseX, mouseY;
+float lastX, lastY;
 
 GLuint programID, matrixID; 
 
