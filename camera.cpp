@@ -34,15 +34,16 @@ camera::camera(void)
     scroll_boundary=25;
     sensitivity = 0.05f;
 
-    position = glm::vec3(0,0,0);
-    direction = glm::vec3(0,0,0);
+    fov_y=45.0f;
+    float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
+    position= glm::vec3(window_width/2, window_height/2, Z); 
+    direction= glm::vec3(0,0,-1.0);
     head = glm::vec3(0,1.0,0);
-
+    
     Model = glm::mat4(1.0f);
     View = glm::mat4(1.0f);
     Projection = glm::mat4(1.0f);
     MVP = glm::mat4(1.0f);
-    fov_y=45.0f;
 
     move_signal=glm::vec3(0.0,0.0,0.0);
 
@@ -61,9 +62,6 @@ void camera::setupMVP(void)
     ); 
     
     //view
-    float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
-    position= glm::vec3(window_width/2, window_height/2, Z); 
-    direction= glm::vec3(0,0,-1.0);
     View = glm::lookAt( 
         position, 
         position + direction, 
@@ -75,7 +73,6 @@ void camera::setupMVP(void)
     Projection = glm::perspective(glm::radians(fov_y), aspect_ratio, 0.1f, 10000.0f);
     
     MVP = Projection * View * Model;
-    //glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 }
 
 
