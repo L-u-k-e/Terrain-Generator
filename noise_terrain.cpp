@@ -63,10 +63,10 @@ noise_terrain::noise_terrain(void)
 
     int half_height=window_height/2;
 
-    block_size=100;
+    block_size=200;
     amount_of_vertices=block_size*block_size;
     element_buffer_size=(amount_of_vertices-(block_size*2))*6;
-    point_spread=50.0;
+    point_spread=10.0;
     flatness=20.0;
     max_height=window_height;
     min_height=-max_height;
@@ -87,7 +87,7 @@ noise_terrain::noise_terrain(void)
     copy(init_bounds, init_bounds+12, control_bounds);
 
 
-    fill_mode=GL_FILL;
+    fill_mode=GL_LINE;
 }
 
 
@@ -122,7 +122,6 @@ void noise_terrain::create(glm::vec3 camera_position)
             float z=perlin_noise_2D((x+seed)/flatness, (y+seed)/flatness);
 
             vec3 vertex_color=getVertexColor(z);
-            cout<<vertex_color.red()<<endl;
             colors.push_back(vertex_color);
             
             z = range_map(z, current_range, desired_range);

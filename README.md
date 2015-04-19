@@ -5,7 +5,7 @@ Noise based terrain gen in c++ with OpenGL
 coming along:
 
 
-![4-13](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-13.png)
+![4-18](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-18.png)
 
 
 
