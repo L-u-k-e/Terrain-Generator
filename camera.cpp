@@ -78,7 +78,7 @@ void camera::setupMVP(void)
 
 void camera::calculateMovementSpeed(void)
 {
-    scroll_speed=((window_width + window_height)/2)/4;
+    scroll_speed=((window_width + window_height)/2)/6;
     move_signal_speed=scroll_speed;
 }
 

@@ -34,7 +34,60 @@ const char* vertex_shader   = "vertex_shader.glsl";
 
 camera cam;
 noise_terrain terrain;
+noise_terrain terrain2;
+noise_terrain terrain3;
+noise_terrain terrain4;
+noise_terrain terrain5;
+noise_terrain terrain6;
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
+
+GLuint LoadTexture( const char * filename )
+{
+    GLuint texture;
+
+    int width, height;
+
+    unsigned char * data;
+
+    FILE * file;
+
+    file = fopen( filename, "rb" );
+
+    if ( file == NULL ) return 0;
+    width = 1024;
+    height = 512;
+    data = (unsigned char *)malloc( width * height * 3 );
+    //int size = fseek(file,);
+    fread( data, width * height * 3, 1, file );
+    fclose( file );
+
+    for(int i = 0; i < width * height ; ++i)
+    {
+        int index = i*3;
+        unsigned char B,R;
+        B = data[index];
+        R = data[index+2];
+
+        data[index] = R;
+        data[index+2] = B;
+    }
+
+
+    glGenTextures( 1, &texture );
+    glBindTexture( GL_TEXTURE_2D, texture );
+    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
+
+
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
+    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
+    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
+    free( data );
+
+    return texture;
+}
+
 
 int main(int argc, char **argv) 
 { 
@@ -114,7 +167,11 @@ void init(int width, int height)
     glPolygonOffset(2.0,2.0); 
 
     terrain.create(cam.position);
-    terrain.printInfo(); 
+    terrain2.create(terrain.neighbor(glm::vec3(1,0,0)));
+    terrain3.create(terrain.neighbor(glm::vec3(1,1,0)));
+    terrain4.create(terrain.neighbor(glm::vec3(0,1,0)));
+    terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
+    terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
 }
 
 
@@ -131,7 +188,11 @@ void update(void)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
     terrain.draw();
-    
+    terrain2.draw();
+    terrain3.draw();
+    terrain4.draw();
+    terrain5.draw();
+    terrain6.draw();
     //------------------------------------------------------------------------------------------------
     glutSwapBuffers(); //swap buffers
     //------------------------------------------------------------------------------------------------
@@ -227,7 +288,7 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             break;
 
         case 'm':
-            //toggle_fill_mode=true;
+            terrain.toggleFillMode();
             //createTerrain();
             break;
 

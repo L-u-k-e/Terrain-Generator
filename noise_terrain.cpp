@@ -30,7 +30,9 @@ class noise_terrain
     float control_increments[6];    //increment amounts to use when signaled to change the respective parameters
     float control_bounds[12];       //min and max bounds on the respective parameter values
 
-
+    glm::vec3 center_position;
+    
+    
     int block_size;         //create an X by X grid of vertices(each are "point_spread pixels apart)
     int amount_of_vertices;
     
@@ -44,8 +46,9 @@ class noise_terrain
     public:
         noise_terrain(void);    
         void printInfo(void);
-        void toggle_fill_mode(void);
-        void create(glm::vec3 camera_position);
+        void toggleFillMode(void);
+        glm::vec3 neighbor(glm::vec3 relative_location);
+        void create(glm::vec3 position);
         void draw(void);
 
         float control_signals[6]; //parallel to the (private) control_* arrays. 
@@ -63,7 +66,7 @@ noise_terrain::noise_terrain(void)
 
     int half_height=window_height/2;
 
-    block_size=200;
+    block_size=100;
     amount_of_vertices=block_size*block_size;
     element_buffer_size=(amount_of_vertices-(block_size*2))*6;
     point_spread=10.0;
@@ -100,8 +103,10 @@ noise_terrain::noise_terrain(void)
     Fills "vertices" and "colors" vectors.
     calls load().
 */
-void noise_terrain::create(glm::vec3 camera_position)
+void noise_terrain::create(glm::vec3 position)
 {
+    center_position=position;
+
     vertices.clear();
     colors.clear();
     
@@ -110,8 +115,8 @@ void noise_terrain::create(glm::vec3 camera_position)
     
     int seed=200000;
 
-    int centerX=camera_position.x/point_spread;
-    int centerY=camera_position.y/point_spread;
+    int centerX=center_position.x/point_spread;
+    int centerY=center_position.y/point_spread;
     int half_block_size=block_size/2;
 
     //use perlin_noise_2D(x,y) to grab height values and fill the "vertices" and "colors" vectors
@@ -129,7 +134,6 @@ void noise_terrain::create(glm::vec3 camera_position)
             vertices.push_back(vertex_position);
         }
     }
-    
     load();
 }
 
@@ -141,13 +145,15 @@ void noise_terrain::create(glm::vec3 camera_position)
 void noise_terrain::load(void)
 {
     tessellate(); //create and fill element_buffer
-    
     int buffer_size=amount_of_vertices*3;
 
-    GLfloat *vertex_bus = new GLfloat[buffer_size];  //vertices
-    GLfloat *color_bus  = new GLfloat[buffer_size];  //vertex colors
-    GLfloat *color_bus2 = new GLfloat[buffer_size];  //filled with background color to help draw wireframe
-     
+//    GLfloat *vertex_bus = new GLfloat[buffer_size];  //vertices
+  //  GLfloat *color_bus  = new GLfloat[buffer_size];  //vertex colors
+    //GLfloat *color_bus2 = new GLfloat[buffer_size];  //filled with background color to help draw wireframe
+     GLfloat vertex_bus[buffer_size];  //vertices
+     GLfloat color_bus[buffer_size];  //vertex colors
+     GLfloat color_bus2[buffer_size];  //filled with background color to help draw wireframe
+
     //initialize the arrays
     for (int i=0; i<buffer_size; i++)
     {
@@ -174,9 +180,9 @@ void noise_terrain::load(void)
     glDeleteBuffers(1,&color_buffer2);
     color_buffer2 = createBuffer(GL_ARRAY_BUFFER, color_bus2, sizeof(GLfloat)*(buffer_size), usage_hint);
 
-    delete [] vertex_bus;
-    delete [] color_bus;
-    delete [] color_bus2;
+    //delete [] vertex_bus;
+    //delete [] color_bus;
+   // delete [] color_bus2;
 }
 
 
@@ -186,8 +192,8 @@ void noise_terrain::load(void)
 */
 void noise_terrain::tessellate(void) 
 {
-    GLuint *element_bus = new GLuint[element_buffer_size]; 
-
+    //GLuint *element_bus = new GLuint[element_buffer_size]; 
+    GLuint element_bus[element_buffer_size];
     int i=0;
     for(int y=0; y<block_size-1; y++)
     {
@@ -212,14 +218,13 @@ void noise_terrain::tessellate(void)
             i++;
             element_bus[i]=square[3];
             i++;
-            
         }
     }
 
     glDeleteBuffers(1, &element_buffer);
     element_buffer = createBuffer(GL_ELEMENT_ARRAY_BUFFER, element_bus, sizeof(GLuint)*element_buffer_size, usage_hint);
 
-    delete [] element_bus;
+   // delete [] element_bus;
 }
 
 
@@ -235,11 +240,11 @@ void noise_terrain::draw(void)
     
     if(fill_mode==GL_FILL)
     {
-        attributeBind(color_buffer, 1, 3);
+        attributeBind(color_buffer, color_buffer_attribute_index, 3);
     }
     else
     {
-        attributeBind(color_buffer2, 1, 3);
+        attributeBind(color_buffer2, color_buffer_attribute_index, 3);
     }
 
     //draw solid triangles
@@ -249,7 +254,7 @@ void noise_terrain::draw(void)
     if(fill_mode==GL_LINE)
     {
         //swap out current color buffer for the true vertex colors and bind it to AA 1
-        attributeBind(color_buffer, 1, 3);
+        attributeBind(color_buffer, color_buffer_attribute_index, 3);
 
         //draw colored/wireframe polygons on top of black ones
         //this works because we increased the Z value of all GL_LINE polygons in the setup stage with glPolygonOffset()
@@ -317,3 +322,40 @@ void noise_terrain::printInfo(void)
     cout<<endl;
 }
 
+
+/*
+    Switches the fill mode for this terrain block.
+*/
+void noise_terrain::toggleFillMode(void)
+{
+    if(fill_mode==GL_LINE)
+    {
+        fill_mode=GL_FILL;
+    }
+    else
+    {
+        fill_mode=GL_LINE;
+    }
+}
+
+
+/*
+    Takes a vec2 indicating the x/y position of a block relative to this one.
+    Returns the center position that block. 
+
+    E.G. neighbor(glm::vec2(1,1)) will give you the center position of the block
+    in front/to the right of this one. 
+
+    Relies on a constant block size.
+*/
+glm::vec3 noise_terrain::neighbor(glm::vec3 position)
+{
+    glm::vec3 neighbor_position = center_position;
+
+    int true_block_size = block_size*point_spread;
+    
+    neighbor_position.x+=(true_block_size*position.x);
+    neighbor_position.y+=(true_block_size*position.y);
+
+    return neighbor_position;
+}
