@@ -3,7 +3,7 @@
 in vec2 UV;
  
 out vec4 color; 
-uniform sampler2D textureID;
+uniform gsamplerCube textureID;
  
 void main(){
 	color = texture( textureID, UV);

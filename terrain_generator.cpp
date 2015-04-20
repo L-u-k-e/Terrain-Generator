@@ -97,13 +97,9 @@ void init(int width, int height)
     
     // Create and compile our GLSL program from the shaders
     programID = loadShaders(fragment_shader, vertex_shader);
-    textureID = loadShaders(texture_fragment_shader, texture_vertex_shader);
 
     vertex_attribute_loc = glGetAttribLocation(programID, "position");                                                                                                     
     color_attribute_loc = glGetAttribLocation(programID, "color");
-
-    tex_vertex_attribute_loc = glGetAttribLocation(textureID, "position");                                                                                 
-    tex_UV_attribute_loc = glGetAttribLocation(textureID, "texcoords");
 
 
     // Enable attribute array 0 and 1                                                                                                                                      
@@ -129,9 +125,6 @@ void init(int width, int height)
     terrain4.create(terrain.neighbor(glm::vec3(0,1,0)));
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
-
-       glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                 
-       glEnableVertexAttribArray(color_attribute_loc);
 
 }
 

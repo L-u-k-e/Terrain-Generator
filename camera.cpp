@@ -2,6 +2,7 @@ using namespace std;
 class camera
 {
     public:
+
         float yaw, pitch;
 
         glm::vec3 move_signal;
@@ -47,6 +48,7 @@ camera::camera(void)
 
     move_signal=glm::vec3(0.0,0.0,0.0);
 
+    matrixID = glGetUniformLocation(programID, "MVP");
     setupMVP();
 }
 

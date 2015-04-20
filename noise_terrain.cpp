@@ -230,15 +230,15 @@ void noise_terrain::draw(void)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-    attributeBind(vertex_buffer, vertex_buffer_attribute_index, 3);
+    attributeBind(vertex_buffer, vertex_attribute_loc, 3);
     
     if(fill_mode==GL_FILL)
     {
-        attributeBind(color_buffer, color_buffer_attribute_index, 3);
+        attributeBind(color_buffer, color_attribute_loc, 3);
     }
     else
     {
-        attributeBind(color_buffer2, color_buffer_attribute_index, 3);
+        attributeBind(color_buffer2, color_attribute_loc, 3);
     }
 
     //draw solid triangles
@@ -248,7 +248,7 @@ void noise_terrain::draw(void)
     if(fill_mode==GL_LINE)
     {
         //swap out current color buffer for the true vertex colors and bind it to AA 1
-        attributeBind(color_buffer, color_buffer_attribute_index, 3);
+        attributeBind(color_buffer, color_attribute_loc, 3);
 
         //draw colored/wireframe polygons on top of black ones
         //this works because we increased the Z value of all GL_LINE polygons in the setup stage with glPolygonOffset()
