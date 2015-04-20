@@ -68,7 +68,7 @@ noise_terrain::noise_terrain(void)
 
     block_size=100;
     amount_of_vertices=block_size*block_size;
-    element_buffer_size=(amount_of_vertices-(block_size*2))*6;
+    element_buffer_size=(amount_of_vertices-(block_size*2)+1)*6;
     point_spread=10.0;
     flatness=20.0;
     max_height=window_height;
@@ -147,9 +147,6 @@ void noise_terrain::load(void)
     tessellate(); //create and fill element_buffer
     int buffer_size=amount_of_vertices*3;
 
-//    GLfloat *vertex_bus = new GLfloat[buffer_size];  //vertices
-  //  GLfloat *color_bus  = new GLfloat[buffer_size];  //vertex colors
-    //GLfloat *color_bus2 = new GLfloat[buffer_size];  //filled with background color to help draw wireframe
      GLfloat vertex_bus[buffer_size];  //vertices
      GLfloat color_bus[buffer_size];  //vertex colors
      GLfloat color_bus2[buffer_size];  //filled with background color to help draw wireframe
@@ -170,6 +167,7 @@ void noise_terrain::load(void)
         colors[i].dump_into(color_bus);
     }
 
+
     //create and fill the buffers
     glDeleteBuffers(1,&vertex_buffer);
     vertex_buffer = createBuffer(GL_ARRAY_BUFFER, vertex_bus, sizeof(GLfloat)*(buffer_size), usage_hint);
@@ -179,10 +177,6 @@ void noise_terrain::load(void)
         
     glDeleteBuffers(1,&color_buffer2);
     color_buffer2 = createBuffer(GL_ARRAY_BUFFER, color_bus2, sizeof(GLfloat)*(buffer_size), usage_hint);
-
-    //delete [] vertex_bus;
-    //delete [] color_bus;
-   // delete [] color_bus2;
 }
 
 
@@ -192,7 +186,6 @@ void noise_terrain::load(void)
 */
 void noise_terrain::tessellate(void) 
 {
-    //GLuint *element_bus = new GLuint[element_buffer_size]; 
     GLuint element_bus[element_buffer_size];
     int i=0;
     for(int y=0; y<block_size-1; y++)
@@ -223,8 +216,6 @@ void noise_terrain::tessellate(void)
 
     glDeleteBuffers(1, &element_buffer);
     element_buffer = createBuffer(GL_ELEMENT_ARRAY_BUFFER, element_bus, sizeof(GLuint)*element_buffer_size, usage_hint);
-
-   // delete [] element_bus;
 }
 
 
@@ -234,6 +225,9 @@ void noise_terrain::tessellate(void)
 */
 void noise_terrain::draw(void)
 {
+    glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
+    glEnableVertexAttribArray(color_attribute_loc);
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
     attributeBind(vertex_buffer, vertex_buffer_attribute_index, 3);
@@ -261,6 +255,9 @@ void noise_terrain::draw(void)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawElements(GL_TRIANGLES, element_buffer_size, GL_UNSIGNED_INT, (void*)0);                                                                                                                                                       
     }
+
+    glDisableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
+    glDisableVertexAttribArray(color_attribute_loc);
 }
 
 

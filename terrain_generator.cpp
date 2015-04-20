@@ -8,7 +8,7 @@
 #include "mouse_event_handler.cpp"
 #include "keyboard_event_handler.cpp"
 #include "loadShaders.cpp"
-
+#include "skybox.cpp"
 
 using namespace std;             
 
@@ -29,9 +29,6 @@ void swapVec3(vec3 *a, vec3 *b);
 //////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 
 
-const char* fragment_shader = "fragment_shader.glsl";
-const char* vertex_shader   = "vertex_shader.glsl"; 
-
 camera cam;
 noise_terrain terrain;
 noise_terrain terrain2;
@@ -40,54 +37,6 @@ noise_terrain terrain4;
 noise_terrain terrain5;
 noise_terrain terrain6;
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
-
-GLuint LoadTexture( const char * filename )
-{
-    GLuint texture;
-
-    int width, height;
-
-    unsigned char * data;
-
-    FILE * file;
-
-    file = fopen( filename, "rb" );
-
-    if ( file == NULL ) return 0;
-    width = 1024;
-    height = 512;
-    data = (unsigned char *)malloc( width * height * 3 );
-    //int size = fseek(file,);
-    fread( data, width * height * 3, 1, file );
-    fclose( file );
-
-    for(int i = 0; i < width * height ; ++i)
-    {
-        int index = i*3;
-        unsigned char B,R;
-        B = data[index];
-        R = data[index+2];
-
-        data[index] = R;
-        data[index+2] = B;
-    }
-
-
-    glGenTextures( 1, &texture );
-    glBindTexture( GL_TEXTURE_2D, texture );
-    glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
-
-
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
-    glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
-    gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
-    free( data );
-
-    return texture;
-}
-
 
 int main(int argc, char **argv) 
 { 
@@ -148,6 +97,14 @@ void init(int width, int height)
     
     // Create and compile our GLSL program from the shaders
     programID = loadShaders(fragment_shader, vertex_shader);
+    textureID = loadShaders(texture_fragment_shader, texture_vertex_shader);
+
+    vertex_attribute_loc = glGetAttribLocation(programID, "position");                                                                                                     
+    color_attribute_loc = glGetAttribLocation(programID, "color");
+
+    tex_vertex_attribute_loc = glGetAttribLocation(textureID, "position");                                                                                 
+    tex_UV_attribute_loc = glGetAttribLocation(textureID, "texcoords");
+
 
     // Enable attribute array 0 and 1                                                                                                                                      
     glEnableVertexAttribArray(0);
@@ -172,6 +129,10 @@ void init(int width, int height)
     terrain4.create(terrain.neighbor(glm::vec3(0,1,0)));
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
+
+       glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                 
+       glEnableVertexAttribArray(color_attribute_loc);
+
 }
 
 
