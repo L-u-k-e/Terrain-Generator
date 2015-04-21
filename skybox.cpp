@@ -8,8 +8,8 @@ class skybox
     GLuint box;
 
     //image dimensions (every side must be the same dimensions)
-    int image_width;
-    int image_height;
+    //int image_width;
+   // int image_height;
     
     //VP matrix
     glm::mat4 View;                                                                                                                                                
@@ -20,29 +20,86 @@ class skybox
     GLuint textureID;
     
     //location of VP matrix in vertex shader.
-    GLuint matrixID;
+    GLuint projectionID;
+    GLuint viewID;
 
-    //location of attribute arrays to use to pass input to vertex shader
-    GLuint AA_index_vertex;
-    GLuint AA_index_uv;
+    //location of attribute array to use to pass input to vertex shader
+    int AA_index;
 
-    //actual cube vertex coords in 3D world space
-    float vertices[18 * 6];
+    //vertex buffer object
+    GLuint VBO;
 
-    GLuint loadImage(const char *file_name, int image_width, int image_height);
+    void loadImage(const char *file_name, GLenum side_target);
     public:
         skybox(void);
         void load(void);
-        void update(glm::mat4 view);
+        void update(glm::mat4 view, glm::mat4 projection);
         void draw(void);
 };
 
 skybox::skybox(void)
 {
+}
+
+
+void skybox::update(glm::mat4 view, glm::mat4 projection)
+{
+    view = glm::mat4(glm::mat3(view));
+
+    projectionID  = glGetUniformLocation(skyboxID, "projection");
+    viewID  = glGetUniformLocation(skyboxID, "view");
+
+    glUniformMatrix4fv(projectionID, 1, GL_FALSE, &projection[0][0]);  
+    glUniformMatrix4fv(viewID, 1, GL_FALSE, &view[0][0]);  
+    
+}
+
+void LoadBitmap(const char* FilePath, int &width, int &height, vector<unsigned char> &Pixels)                                                                              
+{
+    width = 0;
+    height = 0;
+    short BitsPerPixel = 0;
+        
+    std::fstream hFile(FilePath, std::ios::in | std::ios::binary);
+    if (!hFile.is_open()) throw std::invalid_argument("Error: File Not Found.");
+
+    hFile.seekg(0, std::ios::end);
+    int Length = hFile.tellg();
+    hFile.seekg(0, std::ios::beg);
+    std::vector<std::uint8_t> FileInfo(Length);
+    hFile.read(reinterpret_cast<char*>(FileInfo.data()), 54);
+
+    if (FileInfo[0] != 'B' && FileInfo[1] != 'M')
+    {   
+        hFile.close();
+        throw std::invalid_argument("Error: Invalid File Format. Bitmap Required.");
+    }   
+
+    if (FileInfo[28] != 24 && FileInfo[28] != 32) 
+    {   
+        hFile.close();
+        throw std::invalid_argument("Error: Invalid File Format. 24 or 32 bit Image Required.");
+    }   
+
+    BitsPerPixel = FileInfo[28];
+    width = FileInfo[18] + (FileInfo[19] << 8);
+    height = FileInfo[22] + (FileInfo[23] << 8);
+    std::uint32_t PixelsOffset = FileInfo[10] + (FileInfo[11] << 8);
+    std::uint32_t size = ((width * BitsPerPixel + 31) / 32) * 4 * height;
+    Pixels.resize(size);
+
+    hFile.seekg(PixelsOffset, std::ios::beg);
+    hFile.read(reinterpret_cast<char*>(Pixels.data()), size);
+    hFile.close();
+}
+
+
+void skybox::load(void)
+{
     skyboxID = loadShaders("skybox_fragment_shader.glsl", "skybox_vertex_shader.glsl");
 
-    image_width=4096;
-    image_height=4096;
+    //image_width;
+    //image_height;
     
     //create the cube texture object handle
     glGenTextures(1, &box);
@@ -55,9 +112,17 @@ skybox::skybox(void)
     loadImage("skyboxes/galaxy/NegativeZ.png", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
     loadImage("skyboxes/galaxy/PositiveZ.png", GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
 
+ /*   loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_NEGATIVE_X);
+    loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_POSITIVE_X);
+    loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_NEGATIVE_Y);
+    loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_POSITIVE_Y);
+    loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_NEGATIVE_Z);
+    loadImage("Color.bmp", GL_TEXTURE_CUBE_MAP_POSITIVE_Z);
+*/
+   
     //set filter options
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
     //set wrap options 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -65,11 +130,11 @@ skybox::skybox(void)
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
     //generate mipmap
-    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+    //glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     //create box to splat cube texture onto 
-    float D =500.0f; 
-    float temp[] = {
+    GLfloat D =1.0f; 
+    GLfloat vertices[] = {
        -D,  D, -D,
        -D, -D, -D,
         D, -D, -D,
@@ -112,80 +177,72 @@ skybox::skybox(void)
        -D, -D,  D,
         D, -D,  D
     };
-    copy(temp, temp+(18*6), vertices);
+
+    //generate cube VBO
+    VBO = createBuffer(GL_ARRAY_BUFFER, vertices, sizeof(GLfloat) * (36*3), GL_STATIC_DRAW);
 
     //set up projection matrix
-    Projection = glm::ortho(0.0f,(float) window_width, 0.0f, (float) window_height, 0.1f, 10000.0f);
+   // Projection = glm::ortho(0.0f,(float) window_width, 0.0f, (float) window_height, 0.1f, 10000.0f);
 
     //get location of uniform variables in the shader
     textureID = glGetUniformLocation(skyboxID, "textureID");
-    matrixID  = glGetUniformLocation(skyboxID, "VP");
 
-    //get location of attribute arrays in shader
-    AA_index_vertex = glGetAttribLocation(skyboxID, "position");                                                                                           
-    AA_index_uv     = glGetAttribLocation(skyboxID, "texcoords");
+    //set the uniform variable indicating active texture unit (found in fragment shader) to 0
+    glUniform1i(textureID, 0);
 
+    //get location of attribute array in shader
+    AA_index = glGetAttribLocation(skyboxID, "position"); 
+
+    glUseProgram(programID);
 }
 
-void skybox::update(glm::mat4 view)
+void skybox::loadImage(const char *file_name, GLenum side_target)
 {
-    //box moves with camera
-    View = view;
-
-    //calculate VP matrix and inform the vertex shader of the new value
-    VP = Projection * View;
-    glUniformMatrix4fv(matrixID, 1, GL_FALSE, &VP[0][0]);  
+    //specify texture unit
+    glActiveTexture(GL_TEXTURE0);
     
-
-}
-
-
-void skybox::load(void)
-{
-    
-}
-
-GLuint skybox::loadImage(const char *file_name, GLenum side_target)
-{
     //bind texture object to target
     glBindTexture(GL_TEXTURE_CUBE_MAP, box);
 
+    int width, height;
     //load the image
-    unsigned char* image = SOIL_load_image(file_name, &image_width, &image_height, 0, SOIL_LOAD_RGB); 
-    glTexImage2D(side_target, 0, GL_RGB, image_width, image_height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+    unsigned char* image = SOIL_load_image(file_name, &width, &height, 0, SOIL_LOAD_RGB); 
+    glTexImage2D(side_target, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
+
+   // vector<unsigned char> image;
+   // LoadBitmap("Color.bmp", width, height, image); 
+   // glTexImage2D(side_target, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, image.data());
     
     //clean up
     SOIL_free_image_data(image);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0); 
 
-    return texture;
 }
 
 void skybox::draw()
 {
-
+     
      glUseProgram(skyboxID);                                                                                                                                
 
-     // Use renderedTexture as the 2D texture
-     glBindTexture(GL_TEXTURE_2D, box);
-
      // Set uniform variable for texture in shader
-     glUniform1f(textureID, 0);
+     glUniform1i(textureID, 0);
 
-     glEnableVertexAttribArray(AA_index_vertex);                                                                                                                       
-     glEnableVertexAttribArray(AA_index_uv);
-     
-     glVertexAttribPointer(
-        AA_index_vertex,                  // attribute array index
-        3,                  // number of components (3 = 3D point)
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        0,                  // stride
-        (void*)0            // array buffer offset
-        );
-   
+     //bind texture object to target
+     glActiveTexture(GL_TEXTURE0);
+     glBindTexture(GL_TEXTURE_CUBE_MAP, box);     
+
+     //set up cube vertices
+     glEnableVertexAttribArray(AA_index);
+     attributeBind(VBO, AA_index, 3);
+
+     //we were never here!! Don't tell the depth buffer. sssshhhh!!!!
+     glDepthMask(GL_FALSE); 
+
+     //draw the sky box
+     glDrawArrays(GL_TRIANGLES, 0, 36);
+
+     //turn depth writing on again
+     glDepthMask(GL_TRUE); 
 
 
-     glDisableVertexAttribArray(tex_vertex_attribute_loc);                                                                                                                       
-     glDisableVertexAttribArray(tex_UV_attribute_loc);
 }

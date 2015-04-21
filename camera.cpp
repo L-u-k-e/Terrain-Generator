@@ -48,7 +48,6 @@ camera::camera(void)
 
     move_signal=glm::vec3(0.0,0.0,0.0);
 
-    matrixID = glGetUniformLocation(programID, "MVP");
     setupMVP();
 }
 
@@ -136,8 +135,8 @@ void camera::update(void)
         position + direction, 
         head
     );
-
     MVP = Projection * View * Model;
+    matrixID = glGetUniformLocation(programID, "MVP");             
     glUniformMatrix4fv(matrixID, 1, GL_FALSE, &MVP[0][0]);
 }
 

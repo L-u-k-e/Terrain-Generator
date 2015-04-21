@@ -2,16 +2,15 @@
 #extension GL_ARB_explicit_attrib_location : require
 
 in vec3 position;
-in vec2 texcoords;
+uniform mat4 view;    
+uniform mat4 projection;    
 
-uniform mat4 VP;    
-
-out vec2 UV; 
+out vec3 TexCoords; 
 
 void main()
 {
-	gl_Position = VP * vec4(position, 1.0);	
-	UV = texcoords;
+	gl_Position = projection * view  * vec4(position, 1.0);	
+	TexCoords = position;
 }
 
 

@@ -225,6 +225,7 @@ void noise_terrain::tessellate(void)
 */
 void noise_terrain::draw(void)
 {
+    glUseProgram(programID);
     glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
     glEnableVertexAttribArray(color_attribute_loc);
 

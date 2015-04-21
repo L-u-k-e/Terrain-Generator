@@ -30,6 +30,7 @@ void swapVec3(vec3 *a, vec3 *b);
 
 
 camera cam;
+skybox background;
 noise_terrain terrain;
 noise_terrain terrain2;
 noise_terrain terrain3;
@@ -39,7 +40,7 @@ noise_terrain terrain6;
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 
-{ 
+{
     glutInit(&argc, argv);   
     
     init(window_width,window_height);
@@ -72,7 +73,7 @@ void init(int width, int height)
     glutInitWindowSize(width, height);
 
     // Create display window
-    glutCreateWindow("Assignment 1- Bresenham's algorithm");
+    glutCreateWindow("Terrain Generation");
     
     //setup mouse position
     mouseX = window_width/2;
@@ -93,10 +94,11 @@ void init(int width, int height)
     glBindVertexArray(VertexArrayID);
     
     //set clear color to black
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     
     // Create and compile our GLSL program from the shaders
     programID = loadShaders(fragment_shader, vertex_shader);
+    matrixID = glGetUniformLocation(programID, "MVP");    
 
     vertex_attribute_loc = glGetAttribLocation(programID, "position");                                                                                                     
     color_attribute_loc = glGetAttribLocation(programID, "color");
@@ -126,6 +128,7 @@ void init(int width, int height)
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
 
+    background.load();
 }
 
 
@@ -137,10 +140,18 @@ void init(int width, int height)
 void update(void)
 {   
     processUserInput();
+    glUseProgram(programID);
     cam.update();
+    glm::mat4 v =cam.View;
+    glm::mat4 p =cam.Projection;
+    background.update(v, p);
+    cam.setupMVP();
+    cam.update();
+    glUseProgram(programID);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
 
+    background.draw();
     terrain.draw();
     terrain2.draw();
     terrain3.draw();

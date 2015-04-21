@@ -1,10 +1,10 @@
 #version 130 
  
-in vec2 UV;
+in vec3 TexCoords;
  
 out vec4 color; 
-uniform gsamplerCube textureID;
+uniform samplerCube textureID;
  
 void main(){
-	color = texture( textureID, UV);
+	color = texture( textureID, TexCoords);
 }
