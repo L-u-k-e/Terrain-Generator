@@ -128,7 +128,7 @@ void init(int width, int height)
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
 
-    background.load();
+    background.load(cam.Projection);
 }
 
 
@@ -139,17 +139,13 @@ void init(int width, int height)
 
 void update(void)
 {   
-    processUserInput();
     glUseProgram(programID);
-    cam.update();
-    glm::mat4 v =cam.View;
-    glm::mat4 p =cam.Projection;
-    background.update(v, p);
-    cam.setupMVP();
-    cam.update();
-    glUseProgram(programID);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clear screen
+    processUserInput();
+
+    cam.update();
+    background.update(cam.View);
 
     background.draw();
     terrain.draw();
@@ -158,11 +154,9 @@ void update(void)
     terrain4.draw();
     terrain5.draw();
     terrain6.draw();
-    //------------------------------------------------------------------------------------------------
-    glutSwapBuffers(); //swap buffers
-    //------------------------------------------------------------------------------------------------
-    std::this_thread::sleep_for(std::chrono::milliseconds(7)); //sleep
-    //------------------------------------------------------------------------------------------------
+
+    glutSwapBuffers(); 
+    std::this_thread::sleep_for(std::chrono::milliseconds(7));
 }
 
 void resize(int width, int height) 
