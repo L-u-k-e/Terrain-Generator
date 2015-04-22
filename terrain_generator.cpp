@@ -31,12 +31,14 @@ void swapVec3(vec3 *a, vec3 *b);
 
 camera cam;
 skybox background;
+/*
 noise_terrain terrain;
 noise_terrain terrain2;
 noise_terrain terrain3;
 noise_terrain terrain4;
 noise_terrain terrain5;
 noise_terrain terrain6;
+*/
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 
@@ -111,18 +113,20 @@ void init(int width, int height)
     glViewport(0, 0, window_width, window_height);
 
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+    glDisable(GL_CULL_FACE);
     glDepthFunc(GL_LEQUAL);
     glClearDepth(1.0);
     glEnable(GL_POLYGON_OFFSET_FILL); 
     glPolygonOffset(2.0,2.0); 
-
+/*
     terrain.create(cam.position);
     terrain2.create(terrain.neighbor(glm::vec3(1,0,0)));
     terrain3.create(terrain.neighbor(glm::vec3(1,1,0)));
     terrain4.create(terrain.neighbor(glm::vec3(0,1,0)));
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
-
+*/
     background.load(cam.Projection);
 }
 
@@ -143,13 +147,14 @@ void update(void)
     background.update(cam.View);
 
     background.draw();
+/*
     terrain.draw();
     terrain2.draw();
     terrain3.draw();
     terrain4.draw();
     terrain5.draw();
     terrain6.draw();
-
+*/
     glutSwapBuffers(); 
     std::this_thread::sleep_for(std::chrono::milliseconds(7));
 }
@@ -211,7 +216,7 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             if(!cam.move_signal.x) cam.move_signal.x=1.0;
             break;
 
-
+/*
 
         case 'u':
             terrain.control_signals[0]=-1.0;    //point spread
@@ -245,7 +250,7 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             terrain.toggleFillMode();
             //createTerrain();
             break;
-
+*/
         default:
             break;
     } 
@@ -274,7 +279,7 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
         case 'd':
             if(cam.move_signal.x == 1.0) cam.move_signal.x=0;
             break;
-
+/*
         case 'u':
             terrain.control_signals[0]=0.0;    //point spread
             break;
@@ -302,7 +307,7 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
         case 'P':
             terrain.control_signals[3]=0.0;
             break;
-
+*/
 
         default:
             break;

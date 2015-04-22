@@ -34,8 +34,9 @@ skybox::skybox(void)
 
 void skybox::update(glm::mat4 view)
 {
+    glUseProgram(skyboxID);
     //remove the translation dimension from the camera's view matrix.
-    //view = glm::mat4(glm::mat3(view));
+    view = glm::mat4(glm::mat3(view));
 
     //Inform the vertex shader of the new view matrix 
     glUniformMatrix4fv(viewID, 1, GL_FALSE, &view[0][0]);  
@@ -46,6 +47,7 @@ void skybox::load(glm::mat4 projection)
 {
     //Load cube map shaders
     skyboxID = loadShaders("skybox_fragment_shader.glsl", "skybox_vertex_shader.glsl");
+    glUseProgram(skyboxID);
 
     //Get location of uniform variables in the shader program
     textureID = glGetUniformLocation(skyboxID, "textureID");        //texture unit      (fragment shader)
@@ -69,7 +71,7 @@ void skybox::load(glm::mat4 projection)
     box = loadCubemap(faces);
    
     //Create unit cube to splat cube-map texture onto 
-    GLfloat D =1.0f; 
+    GLfloat D =100.0f; 
     GLfloat vertices[] = {
        -D,  D, -D,
        -D, -D, -D,
@@ -114,9 +116,8 @@ void skybox::load(glm::mat4 projection)
         D, -D,  D
     };
 
-    //enable explicit attribute array for vertex shader input
+    //using explicit AA 2 to pass vetex info to vertex shader
     int AA_index=2;
-    glEnableVertexAttribArray(AA_index);
 
     //Generate VBO
     GLuint VBO = createBuffer(GL_ARRAY_BUFFER, vertices, sizeof(GLfloat) * (36*3), GL_STATIC_DRAW); //buffer_tools.cpp
@@ -124,6 +125,7 @@ void skybox::load(glm::mat4 projection)
     //Generate VAO
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
+    glEnableVertexAttribArray(AA_index);
     attributeBind(VBO, AA_index, 3); //buffer_tools.cpp
     glBindVertexArray(0);
 }
@@ -168,6 +170,9 @@ void skybox::draw()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, box);     
 
+    //tell OpenGL to fill polygons
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     //draw the sky box
     glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -176,5 +181,8 @@ void skybox::draw()
     
     //unbind VAO
     glBindVertexArray(0);
+    
+    
+    glUseProgram(programID);
     
 }
