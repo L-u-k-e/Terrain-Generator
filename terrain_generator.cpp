@@ -89,7 +89,6 @@ void init(int width, int height)
     cout << "GLEW initialized; version " << glewGetString(GLEW_VERSION) << endl;
 
     // Create Vertex Array Object (VAO)
-    GLuint VertexArrayID;
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
     
@@ -100,13 +99,9 @@ void init(int width, int height)
     programID = loadShaders(fragment_shader, vertex_shader);
     matrixID = glGetUniformLocation(programID, "MVP");    
 
-    vertex_attribute_loc = glGetAttribLocation(programID, "position");                                                                                                     
-    color_attribute_loc = glGetAttribLocation(programID, "color");
-
-
     // Enable attribute array 0 and 1                                                                                                                                      
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(vertex_attribute_loc);
+    glEnableVertexAttribArray(color_attribute_loc);
 
     // Use shader program                                                                                                      
     glUseProgram(programID);
@@ -128,7 +123,7 @@ void init(int width, int height)
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
 
-    background.load(cam.Projection);
+    //background.load(cam.Projection);
 }
 
 
@@ -145,9 +140,9 @@ void update(void)
     processUserInput();
 
     cam.update();
-    background.update(cam.View);
+    //background.update(cam.View);
 
-    background.draw();
+   // background.draw();
     terrain.draw();
     terrain2.draw();
     terrain3.draw();

@@ -35,7 +35,7 @@ skybox::skybox(void)
 void skybox::update(glm::mat4 view)
 {
     //remove the translation dimension from the camera's view matrix.
-    view = glm::mat4(glm::mat3(view));
+    //view = glm::mat4(glm::mat3(view));
 
     //Inform the vertex shader of the new view matrix 
     glUniformMatrix4fv(viewID, 1, GL_FALSE, &view[0][0]);  
@@ -115,7 +115,7 @@ void skybox::load(glm::mat4 projection)
     };
 
     //Set/enable explicit attribute array for vertex shader input
-    int AA_index=0;
+    int AA_index=2;
     glEnableVertexAttribArray(AA_index);
 
     //Generate VBO
@@ -123,6 +123,7 @@ void skybox::load(glm::mat4 projection)
 
     //Generate VAO
     glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
     attributeBind(VBO, AA_index, 3); //buffer_tools.cpp
     glBindVertexArray(0);
     

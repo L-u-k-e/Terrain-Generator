@@ -105,6 +105,7 @@ noise_terrain::noise_terrain(void)
 */
 void noise_terrain::create(glm::vec3 position)
 {
+    glBindVertexArray(VertexArrayID);   
     center_position=position;
 
     vertices.clear();
@@ -144,11 +145,12 @@ void noise_terrain::create(glm::vec3 position)
 */
 void noise_terrain::load(void)
 {
+    glBindVertexArray(VertexArrayID);   
     tessellate(); //create and fill element_buffer
     int buffer_size=amount_of_vertices*3;
 
      GLfloat vertex_bus[buffer_size];  //vertices
-     GLfloat color_bus[buffer_size];  //vertex colors
+     GLfloat color_bus[buffer_size];   //vertex colors
      GLfloat color_bus2[buffer_size];  //filled with background color to help draw wireframe
 
     //initialize the arrays
@@ -186,6 +188,7 @@ void noise_terrain::load(void)
 */
 void noise_terrain::tessellate(void) 
 {
+    glBindVertexArray(VertexArrayID);   
     GLuint element_bus[element_buffer_size];
     int i=0;
     for(int y=0; y<block_size-1; y++)
@@ -226,6 +229,7 @@ void noise_terrain::tessellate(void)
 void noise_terrain::draw(void)
 {
     glUseProgram(programID);
+    glBindVertexArray(VertexArrayID);   
     glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
     glEnableVertexAttribArray(color_attribute_loc);
 

@@ -2,7 +2,7 @@ void attributeBind(GLuint buffer, int index, int points)
 {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glVertexAttribPointer(
-        index,              // position or color 
+        index,              // index of attribute array 
         points,             // how many dimensions? 
         GL_FLOAT,           // type
         GL_FALSE,           // normalized?
