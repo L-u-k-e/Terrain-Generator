@@ -37,8 +37,7 @@ camera::camera(void)
 
     fov_y=45.0f;
     float Z = window_height / (2 * tan(glm::radians(fov_y/2.0)));
-    //position= glm::vec3(window_width/2, window_height/2, Z); 
-    position=glm::vec3(0,0,0);
+    position= glm::vec3(window_width/2, window_height/2, Z); 
     direction= glm::vec3(0,0,-1.0);
     head = glm::vec3(0,1.0,0);
     

@@ -32,7 +32,7 @@ skybox::skybox(void)
 }
 
 
-void skybox::update(glm::mat4 view)
+void skybox::update(glm::mat4 )
 {
     glUseProgram(skyboxID);
     //remove the translation dimension from the camera's view matrix.
@@ -71,7 +71,7 @@ void skybox::load(glm::mat4 projection)
     box = loadCubemap(faces);
    
     //Create unit cube to splat cube-map texture onto 
-    GLfloat D =100.0f; 
+    GLfloat D =1.0f; 
     GLfloat vertices[] = {
        -D,  D, -D,
        -D, -D, -D,
@@ -182,7 +182,7 @@ void skybox::draw()
     //unbind VAO
     glBindVertexArray(0);
     
-    
+    //switch back to normal shaders
     glUseProgram(programID);
     
 }
