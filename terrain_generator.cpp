@@ -123,7 +123,7 @@ void init(int width, int height)
     terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
     terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
 
-    //background.load(cam.Projection);
+    background.load(cam.Projection);
 }
 
 
@@ -140,9 +140,9 @@ void update(void)
     processUserInput();
 
     cam.update();
-    //background.update(cam.View);
+    background.update(cam.View);
 
-   // background.draw();
+    background.draw();
     terrain.draw();
     terrain2.draw();
     terrain3.draw();

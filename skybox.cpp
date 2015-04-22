@@ -7,7 +7,7 @@ class skybox
     //cube map texture itself
     GLuint box;
     
-    //location of unform variable in fragment shader to identify the texture 
+    //location of unform variable in fragment shader to identify the texture unit 
     GLuint textureID;
     
     //location of VP matrix in vertex shader.
@@ -114,7 +114,7 @@ void skybox::load(glm::mat4 projection)
         D, -D,  D
     };
 
-    //Set/enable explicit attribute array for vertex shader input
+    //enable explicit attribute array for vertex shader input
     int AA_index=2;
     glEnableVertexAttribArray(AA_index);
 
@@ -126,8 +126,6 @@ void skybox::load(glm::mat4 projection)
     glBindVertexArray(VAO);
     attributeBind(VBO, AA_index, 3); //buffer_tools.cpp
     glBindVertexArray(0);
-    
-
 }
 
 
@@ -160,7 +158,7 @@ void skybox::draw()
 {
     glUseProgram(skyboxID);                                                                                                                                
 
-    //we were never here!! Don't tell the depth buffer. sssshhhh!!!!
+    //don't write to Z buffer
     glDepthMask(GL_FALSE); 
 
     //bind the skybox VAO (sets up all vertex data)
