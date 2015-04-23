@@ -230,8 +230,6 @@ void noise_terrain::draw(void)
 {
     glUseProgram(programID);
     glBindVertexArray(VertexArrayID);   
-    glEnableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
-    glEnableVertexAttribArray(color_attribute_loc);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
@@ -260,9 +258,6 @@ void noise_terrain::draw(void)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glDrawElements(GL_TRIANGLES, element_buffer_size, GL_UNSIGNED_INT, (void*)0);                                                                                                                                                       
     }
-
-    glDisableVertexAttribArray(vertex_attribute_loc);                                                                                                                       
-    glDisableVertexAttribArray(color_attribute_loc);
 }
 
 
@@ -354,7 +349,7 @@ glm::vec3 noise_terrain::neighbor(glm::vec3 position)
 {
     glm::vec3 neighbor_position = center_position;
 
-    int true_block_size = block_size*point_spread;
+    int true_block_size = block_size*(point_spread-1);
     
     neighbor_position.x+=(true_block_size*position.x);
     neighbor_position.y+=(true_block_size*position.y);

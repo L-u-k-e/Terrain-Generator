@@ -32,7 +32,7 @@ skybox::skybox(void)
 }
 
 
-void skybox::update(glm::mat4 )
+void skybox::update(glm::mat4 view)
 {
     glUseProgram(skyboxID);
     //remove the translation dimension from the camera's view matrix.
