@@ -18,6 +18,7 @@ class noise_terrain
     float min_height;         //minimum height value
     float max_height;         //maximum height value
     float point_spread;       //separate the vertices by X pixels
+    float seed;
     float flatness;           //highervalue = flatter terrain. (this is not equivalent to "smoother" terrain.)
     //float persistence       //global hook declared in noise.cpp
     //float octaves           //global hook declared in noise.cpp
@@ -25,72 +26,47 @@ class noise_terrain
     GLenum fill_mode; //display outline or solid color?
 
 
-    //0: point_spread  --  1: flatness  --  2: octaves  --  3: persistence   
-    float *control_variables[6];    //pointers to terrain control parameters themselves
-    float control_increments[6];    //increment amounts to use when signaled to change the respective parameters
-    float control_bounds[12];       //min and max bounds on the respective parameter values
-
     glm::vec3 center_position;
     
     
-    int block_size;         //create an X by X grid of vertices(each are "point_spread pixels apart)
+    int block_size; //create an X by X grid of vertices(each are "point_spread pixels apart)
+
     int amount_of_vertices;
     
-    int element_buffer_size;      //argument to match COUNT parameter in glDrawElements calls
+    int element_buffer_size; //argument to match COUNT parameter in glDrawElements calls
+
 
     float range_map(float value, float r1[], float r2[]);                                                                                                                       
     vec3 getVertexColor(float height);
     void load(void);
     void tessellate(void);
-    
     public:
-        noise_terrain(void);    
+        noise_terrain(int b, float p, float f, float mah, float mih, float s, GLenum fm);
         void printInfo(void);
         void toggleFillMode(void);
         glm::vec3 neighbor(glm::vec3 relative_location);
         void create(glm::vec3 position);
         void draw(void);
-
-        float control_signals[6]; //parallel to the (private) control_* arrays. 
+    
+        float control_signals[7]; //parallel to the (private) control_* arrays. 
                                   //request an increment through this array   
 };
 
-
-
-/*
-constructor: initializes instance variables
-*/
-noise_terrain::noise_terrain(void)
+//constructor
+noise_terrain::noise_terrain(int b, float p, float f, float mah, float mih, float s, GLenum fm)
 {
-    usage_hint=GL_STATIC_DRAW;
+    block_size= b;
+    point_spread= p;
+    flatness= f;
+    max_height= mah;
+    min_height= mih;
+    seed= s;
+    fill_mode=fm;
 
-    int half_height=window_height/2;
+    usage_hint= GL_STATIC_DRAW;
 
-    block_size=100;
-    amount_of_vertices=block_size*block_size;
-    element_buffer_size=(amount_of_vertices-(block_size*2)+1)*6;
-    point_spread=10.0;
-    flatness=20.0;
-    max_height=window_height;
-    min_height=-max_height;
-
-    
-    //set up control_* arrays
-    float hh=half_height;
-    float wh=window_height;
-    
-    float *init_variables[6]  = {&point_spread,   &flatness,   &octaves,   &persistence,   &min_height,   &max_height };                                                                          
-    float init_signals[6]     = {      0,             0,           0,           0,             0,             0       };
-    float init_increments[6]  = {     1.0,           1.0,         1.0,         0.1,           1.0,           1.0      };
-    float init_bounds[12]     = {   1.0,100.0,     1.0,50.0,    1.0,8.0,     0.1,0.9,       -wh,hh,        -hh,wh     };
-
-    copy(init_variables, init_variables+6, control_variables);
-    copy(init_signals, init_signals+6, control_signals);
-    copy(init_increments, init_increments+6, control_increments);
-    copy(init_bounds, init_bounds+12, control_bounds);
-
-
-    fill_mode=GL_LINE;
+    amount_of_vertices= block_size*block_size;
+    element_buffer_size= (amount_of_vertices-(block_size*2)+1)*6;   
 }
 
 
@@ -114,8 +90,6 @@ void noise_terrain::create(glm::vec3 position)
     float current_range[2]={-1.0, 1.0};
     float desired_range[2]={min_height, max_height};
     
-    int seed=200000;
-
     int centerX=center_position.x/point_spread;
     int centerY=center_position.y/point_spread;
     int half_block_size=block_size/2;
@@ -222,6 +196,11 @@ void noise_terrain::tessellate(void)
 }
 
 
+/*
+*/
+
+
+
 
 /*
     Binds the appropriate buffers and draws the terrain
@@ -259,6 +238,8 @@ void noise_terrain::draw(void)
         glDrawElements(GL_TRIANGLES, element_buffer_size, GL_UNSIGNED_INT, (void*)0);                                                                                                                                                       
     }
 }
+
+
 
 
 
@@ -337,7 +318,7 @@ void noise_terrain::toggleFillMode(void)
 
 
 /*
-    Takes a vec2 indicating the x/y position of a block relative to this one.
+    Takes a vec3 indicating the x/y position of a block relative to this one.
     Returns the center position that block. 
 
     E.G. neighbor(glm::vec2(1,1)) will give you the center position of the block

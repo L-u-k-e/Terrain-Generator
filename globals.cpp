@@ -3,7 +3,7 @@ float lastX, lastY;
 
 GLuint programID, matrixID;
 
-int window_width=600;
+int window_width=800;
 int window_height=600;
 
 const char* fragment_shader = "fragment_shader.glsl";                                                                                                                      

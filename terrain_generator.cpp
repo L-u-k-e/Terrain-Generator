@@ -9,10 +9,10 @@
 #include "keyboard_event_handler.cpp"
 #include "loadShaders.cpp"
 #include "skybox.cpp"
+#include "blockManager.cpp"
 
 using namespace std;             
 
-////////////////////////////////////////////////////     PROTOTYPES     ////////////////////////////////////////////////////////////////////
 
 void init(int width, int height); 
 
@@ -26,19 +26,11 @@ void processUserInput(void);
 
 void swapVec3(vec3 *a, vec3 *b);
 
-//////////////////////////////////////////////////////          GLOBALS          ////////////////////////////////////////////////////////////////////
 
 
 camera cam;
-skybox background;
-
-noise_terrain terrain;
-noise_terrain terrain2;
-noise_terrain terrain3;
-noise_terrain terrain4;
-noise_terrain terrain5;
-noise_terrain terrain6;
-
+skybox background; 
+blockManager terrain;
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 
@@ -120,13 +112,7 @@ void init(int width, int height)
     glEnable(GL_POLYGON_OFFSET_FILL); 
     glPolygonOffset(2.0,2.0); 
 
-    terrain.create(cam.position);
-    terrain2.create(terrain.neighbor(glm::vec3(1,0,0)));
-    terrain3.create(terrain.neighbor(glm::vec3(1,1,0)));
-    terrain4.create(terrain.neighbor(glm::vec3(0,1,0)));
-    terrain5.create(terrain.neighbor(glm::vec3(-1,1,0)));
-    terrain6.create(terrain.neighbor(glm::vec3(-1,0,0)));
-
+    terrain.loadBlocks(glm::vec3(0,0,0), 1);
     background.load(cam.Projection);
 }
 
@@ -145,18 +131,13 @@ void update(void)
 
     cam.update();
     background.update(cam.View);
+    terrain.update();
 
     background.draw();
-
-    terrain.draw();
-    terrain2.draw();
-    terrain3.draw();
-    terrain4.draw();
-    terrain5.draw();
-    terrain6.draw();
+    terrain.drawBlocks();
 
     glutSwapBuffers(); 
-    std::this_thread::sleep_for(std::chrono::milliseconds(7));
+   // std::this_thread::sleep_for(std::chrono::milliseconds(7));
 }
 
 void resize(int width, int height) 
@@ -312,7 +293,6 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
         default:
             break;
     }
-
 }
 
 //////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
