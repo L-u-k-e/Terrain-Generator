@@ -5,8 +5,9 @@ THIS IS SHERBERT MOUNTAIN..... erm, I mean, noise based terrain generation in c+
 
 coming along:
 ![4-24-1](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-24-1.png)
-![4-24-2](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-24-2.png)
-![4-24-3](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-24-3.png)
+![4-25-1](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-25-1.png)
+![4-25-2](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-25-2.png)
+![4-25-3](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-25-3.png)
 
 --------------------------------------------------------------------------------
 
