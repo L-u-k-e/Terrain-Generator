@@ -4,7 +4,7 @@ Email:  parzycl1@sunyit.edu
 Github Repo:  https://github.com/L-u-k-e/Terrain-Generator
 --------------------------------------------------------------------------------
 
-THIS IS SHERBERT MOUNTAIN..... erm, I mean, noise based terrain generation in 
+THIS IS SHERBERT MOUNTAIN..... erm, I mean, noise based terrain generation with 
 c++ and OpenGL that totally follows the spec in regards to the vertex colors ;)
 
 --------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ Scene Manipulation:
 
 	Persistence Up:   P (uppercase)
 	Persistence Down: p (lowercase)
-	Persitence significance: 
+	Persistence Significance: 
 		Persistence plays an important role in the noise function. Specifically, 
 		it is the rate at which the amplitude is increased each successive 
 		octave.
