@@ -49,8 +49,8 @@ Scene Manipulation:
 		octave.
 
 
-	Octaves Up:	  O (uppercase)
-	Octaves Down:     o (lowercase)
+	Octaves Up:	   O (uppercase)
+	Octaves Down:  o (lowercase)
 	Octave Significance:
 		The amount of octaves specifies how many different noise funtions to add
 		together (each time doubling the frequency) to get the final 

@@ -71,10 +71,10 @@ class blockManager
 blockManager::blockManager(void)
 {
     block_size=100;
-    point_spread=10.0;
-    flatness=20.0;
-    max_height=window_height/2.0;
-    min_height=-max_height;
+    point_spread=10;
+    flatness=25.0;
+    max_height=window_height;
+    min_height=-max_height/2;
     seed=600000;
     fill_mode=GL_LINE;
 
@@ -87,7 +87,7 @@ blockManager::blockManager(void)
     float *variables[num_params]  = {&point_spread,   &flatness,   &octaves,   &persistence,   &min_height,   &max_height,    &seed,      &radius };                                                                          
     float signals[num_params]     = {      0,             0,           0,           0,              0,             0,           0,           0    };
     float increments[num_params]  = {     5.0,           5.0,         1.0,         0.1,            hh,             hh,        1000.0,       1.0   };
-    float bounds[num_params*2]    = {   1.0,100.0,     1.0,50.0,   1.0,12.0,     0.1,0.9,        -wh,hh,        -hh,wh,   400000,800000,   0.0,2.0 };
+    float bounds[num_params*2]    = {   1.0,100.0,     1.0,300.0,   1.0,12.0,     0.1,0.9,        -wh,hh,        -hh,wh,   400000,800000,   0.0,2.0 };
     
     copy(variables,  variables+num_params,   control_variables );
     copy(signals,    signals+num_params,     control_signals   );
@@ -165,6 +165,7 @@ void blockManager::drawBlocks(void)
 //this isn't a parameter manipulation channel because it doesn't require terrain re-creation.
 void blockManager::toggleFillMode(void)
 {
+    fill_mode= (fill_mode == GL_LINE) ? GL_FILL : GL_LINE; 
     for(int i=0; i<blocks.size(); i++)
     {
         blocks[i].toggleFillMode();
@@ -191,9 +192,15 @@ void blockManager::loadPresets(void)
     for(int i=0; i<num_params; i++)
         presets[0][i]=temp1[i];
 
-    float temp2[num_params]= {point_spread, 25.0f, octaves, persistence, min_height, max_height, seed, radius};
+    float temp2[num_params]= {point_spread, 45.0f, 7, 0.6, (float) -window_height/2.0f, (float) window_height, seed, radius};
     for(int i=0; i<num_params; i++)
         presets[1][i]=temp2[i];
 
+    float temp3[num_params]= {7.0, 20.0f, 8, 0.5, (float) -window_height/2.0f, (float) window_height/2.0f, seed, radius};
+    for(int i=0; i<num_params; i++)
+        presets[2][i]=temp3[i];
+
+
     //you can place up to 10 user defined presets here. Bind them to 0-9 on the keyboard.
+    //Don't forget to create the approriate case statements in the keyboard callback switch statement. 
 }

@@ -386,7 +386,7 @@ glm::vec3 noise_terrain::neighbor(glm::vec3 position)
 {
     glm::vec3 neighbor_position = center_position;
 
-    int true_block_size = block_size*(point_spread-1);
+    int true_block_size = (block_size*point_spread)-point_spread;
     
     neighbor_position.x+=(true_block_size*position.x);
     neighbor_position.y+=(true_block_size*position.y);

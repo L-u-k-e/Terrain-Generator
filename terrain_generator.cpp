@@ -319,7 +319,9 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
         case '1':
             terrain.preset(1);
             break;
-
+        case '2':
+            terrain.preset(2);
+            break;
 
 
 
