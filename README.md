@@ -13,7 +13,7 @@ coming along:
 Language and Environment:
 ---
 
-    Developed on Linux (Ubuntu 14.04 LTS). 
+    Developed on Linux (Ubuntu 14.04 LTS). S
 
     OPENGL 3.0 
     Shader Version: 130
@@ -40,6 +40,8 @@ Camera Controls:
 Scene Manipulation:
 ---
 
+Scene Manipulation:
+	
 	You can manipulate the terrain in a variety of ways.
 
 	Persistence Up:   P (uppercase)
@@ -54,7 +56,7 @@ Scene Manipulation:
 	Octaves Down:     o (lowercase)
 	Octave Significance:
 		The amount of octaves specifies how many different noise funtions to add
-		together (each time doubling the frequency by 2) to get the final 
+		together (each time doubling the frequency) to get the final 
 		result. Generally speaking, higher octaves = more detail, but after
 		about 8 or so, you can't tell the difference.
 
@@ -64,13 +66,17 @@ Scene Manipulation:
 	Flatness Significance:
 		When feeding x/y value pairs into the noise function, they are each 
 		divided by the value of the flatness first. As the name implies, upping
-		the flatness value "flattens out" the terrain.
+		the flatness value "flattens out" the terrain. This is because upping 
+		the flatness (divisor) causes the points you end up sampling to be 
+		closer together.
 
 
 	Point-spread Up:    U (uppercase)
 	Point-spread Down:  u (lowercase)
 	Point-spread Significance:
-		Point spread is the distance between vertices.
+		Point spread is the distance between vertices. This doesn't affect the 
+		output of the noise function. However, it has a significant impact on 
+		the final result. 
 
 
 	Min-Range Up:   Y (uppercase)
@@ -80,7 +86,7 @@ Scene Manipulation:
 	Range Significance:
 		When the noise function spits out noise values,they are intially between
 		-1 and 1. They are mapped to the range min - max. This does not affect 
-		the vertex coloring however, although it should for best effect. 
+		the vertex coloring, however. Although it should for best effect. 
 
 
 	Seed Up:	R (uppercase)
@@ -90,9 +96,8 @@ Scene Manipulation:
 		any parameters. 
 
 		Technically however, because this value is just is an input offset to
-		the noise function, which is the same each time and is entirely 
-		deterministic, you could also think of it as giving you a different 
-		chunk of the same landscape. 
+		the noise function, which is entirely deterministic, you could also 
+		think of it as giving you a different chunk of the same landscape. 
 
 		If you make the seed increment small enough, you'll acually see the 
 		terrain scroll across the screen as you change the seed. 
@@ -114,7 +119,3 @@ Scene Manipulation:
 
 		Rendering in full color yeilds a SIGNIFICANT performance advantage 
 		however. 
-
-
-
-
