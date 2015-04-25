@@ -14,7 +14,7 @@ coming along:
 Language and Environment:
 ---
 
-    Developed on Linux (Ubuntu 14.04 LTS). S
+    Developed on Linux (Ubuntu 14.04 LTS). 
 
     OPENGL 3.0 
     Shader Version: 130
