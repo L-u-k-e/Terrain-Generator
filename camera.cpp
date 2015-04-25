@@ -1,3 +1,16 @@
+/*
+    Author: Lucas Parzych
+
+    Implements First person camera with complete freedom of movement
+
+
+    WASD to move foreward/backwards and strafe left/right in relation to the look-at direction
+    mouse to change look-at direction
+
+    Not the most natural feeling thing in the world
+*/
+
+
 using namespace std;
 class camera
 {
@@ -79,7 +92,7 @@ void camera::setupMVP(void)
 
 void camera::calculateMovementSpeed(void)
 {
-    scroll_speed=((window_width + window_height)/2)/6;
+    scroll_speed=((window_width + window_height)/2)/10;
     move_signal_speed=scroll_speed;
 }
 

@@ -1,7 +1,17 @@
-#define PI 3.1415927;
+/*
+    Author:Lucas Parzych
+    
+    The following code is for a 2D noise function.
 
-float octaves=7;
-float persistence=0.5;
+    It is adapted from the pseudo-code at the bottom of this awesome article by Hugo Elias:
+    http://freespace.virgin.net/hugo.elias/models/m_perlin.htm
+
+    This code will not spit out expected values if fed negative numbers.
+*/
+
+
+
+#define PI 3.1415927;
 
 float noise(int x, int y)
 {

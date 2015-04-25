@@ -1,4 +1,13 @@
+/*
+    Author: Lucas Parzych
+
+    Personal vec3 struct
+
+    Main use is for the dump_into function, which is made use of in the noise_terrain class
+*/
+
 using namespace std;
+
 struct vec3
 {
     GLfloat x,y,z;

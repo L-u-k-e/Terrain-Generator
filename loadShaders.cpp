@@ -1,3 +1,11 @@
+/*
+    Author: Dr. Michael Reale
+
+    Loads shader programs returns a handle that can be used with glUseProgram() etc. 
+
+    This code is probably adapted from somewhere on the internet. 
+*/
+
 GLuint loadShaders(const char *fragment_shader, const char *vertex_shader)
 {
     // Create the shaders

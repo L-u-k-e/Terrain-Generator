@@ -1,3 +1,9 @@
+/*
+    Author: Lucas Parzych
+
+    This is main, enjoy your stay. 
+*/
+
 #include "libraries.hpp"
 #include "globals.cpp"
 #include "buffer_tools.cpp"
@@ -5,8 +11,6 @@
 #include "vec3.cpp"
 #include "noise_terrain.cpp"
 #include "camera.cpp"
-#include "mouse_event_handler.cpp"
-#include "keyboard_event_handler.cpp"
 #include "loadShaders.cpp"
 #include "skybox.cpp"
 #include "blockManager.cpp"
@@ -22,15 +26,18 @@ void update(void);
 void recordMouseMotion(GLint xMouse, GLint yMouse);
 void keyDown(GLubyte key, GLint xMouse, GLint yMouse);
 void keyUp(GLubyte key, GLint xMouse, GLint yMouse); 
-void processUserInput(void);
 
-void swapVec3(vec3 *a, vec3 *b);
 
 
 
 camera cam;
 skybox background; 
 blockManager terrain;
+
+
+
+
+
 //////////////////////////////////////////////////////        MAIN & INIT       ////////////////////////////////////////////////////////////////////
 
 int main(int argc, char **argv) 
@@ -112,9 +119,27 @@ void init(int width, int height)
     glEnable(GL_POLYGON_OFFSET_FILL); 
     glPolygonOffset(2.0,2.0); 
 
-    terrain.loadBlocks(glm::vec3(0,0,0), 1);
+    terrain.loadBlocks(glm::vec3(0,0,0), 0);
     background.load(cam.Projection);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -127,8 +152,6 @@ void update(void)
     glUseProgram(programID);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
 
-    processUserInput();
-
     cam.update();
     background.update(cam.View);
     terrain.update();
@@ -139,6 +162,11 @@ void update(void)
     glutSwapBuffers(); 
    // std::this_thread::sleep_for(std::chrono::milliseconds(7));
 }
+
+
+
+
+
 
 void resize(int width, int height) 
 {
@@ -151,6 +179,15 @@ void resize(int width, int height)
 
     cam.calculateMovementSpeed();
 }
+
+
+
+
+
+
+
+
+
 
 
 ////////////////////////////////////////////////////// MOUSE/KEYBOARD CALLBACKS  ////////////////////////////////////////////////////////////////
@@ -172,6 +209,20 @@ void recordMouseMotion(GLint xMouse, GLint yMouse)
     cam.yaw   +=  xoffset;
     cam.pitch +=  yoffset; 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
 {
@@ -197,7 +248,7 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             if(!cam.move_signal.x) cam.move_signal.x=1.0;
             break;
 
-/*
+
 
         case 'u':
             terrain.control_signals[0]=-1.0;    //point spread
@@ -227,15 +278,71 @@ void keyDown(GLubyte key, GLint xMouse, GLint yMouse)
             terrain.control_signals[3]=1.0;
             break;
 
+        case 'Y':
+            terrain.control_signals[4]=1.0;    //min height
+            break;
+        case 'y':
+            terrain.control_signals[4]=-1.0;
+            break;
+
+        case 'T':
+            terrain.control_signals[5]=1.0;    //max height
+            break;
+        case 't':
+            terrain.control_signals[5]=-1.0;
+            break;
+
+        case 'R':
+            terrain.control_signals[6]=1.0;    //seed
+            break;
+        case 'r':
+            terrain.control_signals[6]=-1.0;
+            break;
+
+        case 'N':
+            terrain.control_signals[7]=1.0;    //radius
+            break;
+        case 'n':
+            terrain.control_signals[7]=-1.0;
+            break;
+
         case 'm':
             terrain.toggleFillMode();
-            //createTerrain();
             break;
-*/
+
+
+
+
+        case '0':
+            terrain.preset(0);
+            break;
+        case '1':
+            terrain.preset(1);
+            break;
+
+
+
+
+
+
         default:
             break;
     } 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
 {
@@ -260,7 +367,7 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
         case 'd':
             if(cam.move_signal.x == 1.0) cam.move_signal.x=0;
             break;
-/*
+
         case 'u':
             terrain.control_signals[0]=0.0;    //point spread
             break;
@@ -288,85 +395,37 @@ void keyUp(GLubyte key, GLint xMouse, GLint yMouse)
         case 'P':
             terrain.control_signals[3]=0.0;
             break;
-*/
+
+        case 'Y':
+            terrain.control_signals[4]=0.0;    //min height
+            break;
+        case 'y':
+            terrain.control_signals[4]=0.0;
+            break;
+
+        case 'T':
+            terrain.control_signals[5]=0.0;    //max height
+            break;
+        case 't':
+            terrain.control_signals[5]=0.0;
+            break;
+
+        case 'R':
+            terrain.control_signals[6]=0.0;    //seed
+            break;
+        case 'r':
+            terrain.control_signals[6]=0.0;
+            break;
+
+        case 'N':
+            terrain.control_signals[7]=0.0;    //radius
+            break;
+        case 'n':
+            terrain.control_signals[7]=0.0;
+            break;
+
 
         default:
             break;
     }
 }
-
-//////////////////////////////////////////////////////   PERSONAL ABSTRACTIONS   ////////////////////////////////////////////////////////////////////
-
-
-void processUserInput(void)
-{
-    /*if(toggle_fill_mode)
-    {
-        if(fill_mode==GL_LINE)
-        {
-            fill_mode=GL_FILL;
-        }
-        else fill_mode=GL_LINE;
-
-        toggle_fill_mode=false;
-    }
-   
-    bool new_terrain_required=false;
-    for(int i=0; i<4; i++)
-    {
-        float *variable=terrain_control_variables[i];
-        float min=terrain_control_bounds[i*2];
-        float max=terrain_control_bounds[(i*2)+1];
-        if(terrain_control_signals[i]!=0.0)
-        {
-            new_terrain_required=true;
-        }
-        
-        *variable += terrain_control_signals[i] * terrain_control_increments[i];
-
-        if(*variable<min) *variable=min;
-        else if(*variable>max) *variable=max;
-        
-        terrain_control_signals[i]=0.0;
-    }
-
-    if(new_terrain_required)
-    {
-        createTerrain();
-        printTerrainInfo(); 
-    }*/
-}
-
-
-
-
-
-
-
-
-
-
-
-
-//-----------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-void swapVec3(vec3 *a, vec3 *b)
-{
-    vec3 temp(a->x,a->y,a->z);
-
-    a->x=b->x;
-    a->y=b->y;
-    a->z=b->z;
-
-    b->x=temp.x;
-    b->y=temp.y;
-    b->z=temp.z;
-}
-
-

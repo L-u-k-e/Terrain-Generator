@@ -1,4 +1,14 @@
+/*
+    Author: Lucas Parzych
+
+    Instances of this class represent terrain blocks. 
+
+    These blocks do not have their own VAO, rather, they rely on a global one. 
+    The appropriate vertex buffer objects are stored and re-binded each render pass. 
+*/
+
 using namespace std;
+
 
 class noise_terrain
 {
@@ -52,6 +62,8 @@ class noise_terrain
                                   //request an increment through this array   
 };
 
+
+
 //constructor
 noise_terrain::noise_terrain(int b, float p, float f, float mah, float mih, float s, GLenum fm)
 {
@@ -68,6 +80,7 @@ noise_terrain::noise_terrain(int b, float p, float f, float mah, float mih, floa
     amount_of_vertices= block_size*block_size;
     element_buffer_size= (amount_of_vertices-(block_size*2)+1)*6;   
 }
+
 
 
 
@@ -114,6 +127,8 @@ void noise_terrain::create(glm::vec3 position)
 
 
 
+
+
 /*
    Creates and fills all buffer objects necessary to draw the terrain
 */
@@ -156,6 +171,9 @@ void noise_terrain::load(void)
 }
 
 
+
+
+
 /*
     Fills the element buffer, effectively tessellating the terrain 
     with individual triangles. 
@@ -196,15 +214,9 @@ void noise_terrain::tessellate(void)
 }
 
 
-/*
-*/
 
 
-
-
-/*
-    Binds the appropriate buffers and draws the terrain
-*/
+//   Binds the appropriate buffers and draws the terrain
 void noise_terrain::draw(void)
 {
     glUseProgram(programID);
@@ -250,24 +262,46 @@ void noise_terrain::draw(void)
 vec3 noise_terrain::getVertexColor(float z)                                                                                                                                               
 {
     vec3 vertex_color;
-    if(z>0.45)
+    float red;
+    float blue;
+    float green;
+    float contrast_offset= 0.2;
+    if(z >= -1.0 && z <= -0.2) 
     {
-        vertex_color=vec3(1.0,1.0,1.0);
+        green=0.0f; 
+        red = (1.0f + z)-contrast_offset;
+        blue = abs(z);
     }
-    else if(z>0.15)
+    else if(z <= 0)
     {
-        vertex_color=vec3(0.4,0.4,0.4);
+        green=abs(z);
+        red=(1.0+z)-contrast_offset;
+        blue=abs(z);
     }
-    else if(z>-0.3)
+    else if(z <= 0.2) 
+
     {
-        vertex_color=vec3(0.0,1.0,0.0);
+        blue=0.0f;
+        green=z+contrast_offset;
+        red=1.0f-(z);
+    }
+    else if(z<=0.68)
+    {
+        blue=z-contrast_offset;
+        green=z+contrast_offset;
+        red=1.0f-z;
     }
     else
     {
-        vertex_color=vec3(0.0,0.0,1.0);
+        blue=z-contrast_offset;
+        green=z;
+        red=1.0f-(z-contrast_offset);
     }
+    vertex_color=vec3(red,green,blue);
     return vertex_color;
 }
+
+
 
 
 /*
@@ -281,6 +315,8 @@ float noise_terrain::range_map(float value, float r1[], float r2[])
 }
 
 
+
+
 /*
     Prints out terrain control parameter info.
 */
@@ -288,17 +324,35 @@ void noise_terrain::printInfo(void)
 {
     cout<<endl;
     cout<<endl;
+
     cout<<"Octaves: ";
     cout<<octaves;
+
     cout<<"\tPersistence: ";
     cout<<persistence;
+    
     cout<<"\tFlatness: ";
     cout<<flatness;
+    
     cout<<"\tPoint Spread: ";
     cout<<point_spread;
+
+    cout<<endl;
+    
+    cout<<"Min Height: ";
+    cout<<min_height;
+
+    cout<<"\tMax Height: ";
+    cout<<max_height;
+
+    cout<<"\t\tseed: ";
+    cout<<seed;
+
     cout<<endl;
     cout<<endl;
 }
+
+
 
 
 /*
@@ -315,6 +369,8 @@ void noise_terrain::toggleFillMode(void)
         fill_mode=GL_LINE;
     }
 }
+
+
 
 
 /*

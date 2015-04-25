@@ -1,3 +1,11 @@
+/*
+    Author: Lucas Parzych
+
+    OpenGL buffer object helper functions. 
+
+    DR. Michael Reale wrote createBuffer (I think) 
+*/
+
 void attributeBind(GLuint buffer, int index, int points)
 {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);

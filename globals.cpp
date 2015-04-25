@@ -1,3 +1,9 @@
+/*
+	Author: Lucas Parzych
+
+	Globals
+*/
+
 float mouseX, mouseY;
 float lastX, lastY;
 
@@ -16,3 +22,6 @@ GLuint VertexArrayID;
 
 const char* texture_fragment_shader = "skybox_fragment_shader.glsl";                                                                                                                      
 const char* texture_vertex_shader   = "skybox_vertex_shader.glsl";     
+
+float octaves=8;
+float persistence=0.5;

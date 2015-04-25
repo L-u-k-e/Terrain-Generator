@@ -1,3 +1,17 @@
+/*
+    Author: Lucas Parzych
+
+    This class creates a skybox with its own VAO. 
+    
+    A cube map texture is the primary mechanism by which this was accomplished. 
+
+    cube maps r cewl. 
+
+    This code is essentially a mash up of my own efforts, in combination with these articles:
+    http://antongerdelan.net/opengl/cubemaps.html
+    http://learnopengl.com/#!Advanced-OpenGL/Cubemaps
+*/
+
 using namespace std;
 class skybox
 {

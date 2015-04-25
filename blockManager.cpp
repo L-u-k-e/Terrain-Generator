@@ -7,11 +7,20 @@
     noise_terrain objects are meant to serve as blocks (subsections) of
     a larger and more complete representation of the landscape. For this reason,
     noise_terrain objects shouldn't be manipulated or created directly. This 
-    wrapper is the intended proxy.
+    wrapper is the intended manipulation proxy.
 
     The purpose of this class may not be immediately apparent, but it is 
     conceivable that this class could be extended in various ways to implement a 
     mechanism that achieves "infinite" terrain generation, among other things. 
+
+    For example, rather than recaluclating the entire landscape, you could check camera position
+    in the update function and recalculate on a block by block basis. 
+
+    Once infinite generation is acheived, the parameter manipulation contol arrays could be moved 
+    down to the block level. When this is done, you can scale values on a block by block basis. This 
+    opens up the opportunity to use another noise function to determine large scale terrain features. 
+
+    This could also be decided in many other ways, including manually. 
 */
 class blockManager
 {
@@ -28,12 +37,14 @@ class blockManager
     GLenum fill_mode;
     
     glm::vec3 center;
-    int radius;
+    float radius;
 
-    static const int num_params= 7;
+    static const int num_params= 8;
     float *control_variables[num_params];    //pointers to terrain control parameters themselves
     float control_increments[num_params];    //increment amounts to use when signaled to change the respective parameters
     float control_bounds[num_params*2];       //min and max bounds on the respective parameter values
+
+    float presets[10][num_params];
 
     public:
         blockManager(void);
@@ -42,6 +53,8 @@ class blockManager
         void update(glm::vec3 centroid, int radius);
         void drawBlocks(void);
         void toggleFillMode(void);
+        void preset(int preset_index);
+        void loadPresets(void);
 
         //parameter manipulation request channels
         float control_signals[num_params];
@@ -62,7 +75,7 @@ blockManager::blockManager(void)
     flatness=20.0;
     max_height=window_height/2.0;
     min_height=-max_height;
-    seed=200000;
+    seed=600000;
     fill_mode=GL_LINE;
 
 
@@ -71,15 +84,17 @@ blockManager::blockManager(void)
     float hh=half_height;
     float wh=window_height;
 
-    float *variables[num_params]  = {&point_spread,   &flatness,   &octaves,   &persistence,   &min_height,   &max_height,   &seed    };                                                                          
-    float signals[num_params]     = {      0,             0,           0,           0,             0,             0,           0      };
-    float increments[num_params]  = {     1.0,           1.0,         1.0,         0.1,           1.0,           1.0,         50.0    };
-    float bounds[num_params*2]    = {   1.0,100.0,     1.0,50.0,    1.0,8.0,     0.1,0.9,       -wh,hh,        -hh,wh,   200000,500000};
+    float *variables[num_params]  = {&point_spread,   &flatness,   &octaves,   &persistence,   &min_height,   &max_height,    &seed,      &radius };                                                                          
+    float signals[num_params]     = {      0,             0,           0,           0,              0,             0,           0,           0    };
+    float increments[num_params]  = {     5.0,           5.0,         1.0,         0.1,            hh,             hh,        1000.0,       1.0   };
+    float bounds[num_params*2]    = {   1.0,100.0,     1.0,50.0,   1.0,12.0,     0.1,0.9,        -wh,hh,        -hh,wh,   400000,800000,   0.0,2.0 };
     
     copy(variables,  variables+num_params,   control_variables );
     copy(signals,    signals+num_params,     control_signals   );
     copy(increments, increments+num_params,  control_increments);
     copy(bounds,     bounds+(num_params*2),  control_bounds    );
+
+    loadPresets();
 }
 
 
@@ -131,6 +146,7 @@ void blockManager::update(void)
     {
         blocks.clear();
         loadBlocks(center, radius);
+        blocks[0].printInfo();
     }
 }
 
@@ -153,4 +169,31 @@ void blockManager::toggleFillMode(void)
     {
         blocks[i].toggleFillMode();
     }
+}
+
+
+void blockManager::preset(int preset_index)
+{
+    for(int i=0; i<num_params; i++)
+    {
+        *control_variables[i]=presets[preset_index][i];
+    }
+
+    blocks.clear();
+    loadBlocks(center, radius);
+    blocks[0].printInfo();
+}
+
+
+void blockManager::loadPresets(void)
+{
+    float temp1[num_params]= {point_spread, flatness, octaves, persistence, min_height, max_height, seed, radius};
+    for(int i=0; i<num_params; i++)
+        presets[0][i]=temp1[i];
+
+    float temp2[num_params]= {point_spread, 25.0f, octaves, persistence, min_height, max_height, seed, radius};
+    for(int i=0; i<num_params; i++)
+        presets[1][i]=temp2[i];
+
+    //you can place up to 10 user defined presets here. Bind them to 0-9 on the keyboard.
 }
