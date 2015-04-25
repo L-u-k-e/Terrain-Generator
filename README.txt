@@ -4,7 +4,7 @@ Email:  parzycl1@sunyit.edu
 Github Repo:  https://github.com/L-u-k-e/Terrain-Generator
 --------------------------------------------------------------------------------
 
-THIS IS SHERBERT MOUNTIAN..... erm, I mean, noise based terrain generation in 
+THIS IS SHERBERT MOUNTAIN..... erm, I mean, noise based terrain generation in 
 c++ and OpenGL that totally follows the spec in regards to the vertex colors ;)
 
 --------------------------------------------------------------------------------
@@ -49,9 +49,9 @@ Scene Manipulation:
 
 
 	Octaves Up:	  O (uppercase)
-	Octaves Down: o (lowercase)
+	Octaves Down:     o (lowercase)
 	Octave Significance:
-		The amount of Octaves specifies how many different noise funtions to add
+		The amount of octaves specifies how many different noise funtions to add
 		together (each time doubling the frequency by 2) to get the final 
 		result. Generally speaking, higher octaves = more detail, but after
 		about 8 or so, you can't tell the difference.
@@ -84,7 +84,7 @@ Scene Manipulation:
 	Seed Up:	R (uppercase)
 	Seed Down:  r (lowercase) 
 	Seed significance:
-		changing the seed affectively gives you new terrain without manipulating
+		changing the seed effectively gives you new terrain without manipulating
 		any parameters. 
 
 		Technically however, because this value is just is an input offset to
