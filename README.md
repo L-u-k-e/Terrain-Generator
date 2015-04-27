@@ -40,8 +40,6 @@ Camera Controls:
 
 Scene Manipulation:
 ---
-
-Scene Manipulation:
 	
 	You can manipulate the terrain in a variety of ways.
 
