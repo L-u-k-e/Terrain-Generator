@@ -110,7 +110,7 @@ Scene Manipulation:
 		Radius is the block-distance from the center to the perimeter of the 
 		entire landscape. Its default value is 0, so there is one block total. 
 		Upping this value to 1, surrounds the center block with 1 block on each 
-		side, giving 9 total blocks in the landscape. 
+		side, yeilding a landscape comprised of 9 total blocks. 
 
 
 	Toggle fill mode:    m (lowercase)
