@@ -1,6 +1,6 @@
 # Terrain-Generator
 
-THIS IS SHERBERT MOUNTAIN..... erm, I mean, noise based terrain generation with c++ (OpenGL)
+Noise based terrain generation with c++ (OpenGL)
 
 
 coming along:
