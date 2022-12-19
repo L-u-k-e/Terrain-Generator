@@ -1,6 +1,6 @@
 # Terrain-Generator
 
-Noise based terrain generation with c++ (OpenGL)
+Using Perlin Noise for terrain generation with c++ (OpenGL)
 
 
 coming along:
