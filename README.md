@@ -2,8 +2,6 @@
 
 Using Perlin Noise for terrain generation with c++ (OpenGL)
 
-
-coming along:
 ![4-24-1](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-24-1.png)
 ![4-25-1](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-25-1.png)
 ![4-25-2](https://raw.githubusercontent.com/L-u-k-e/Terrain-Generator/master/screenshots/4-25-2.png)
